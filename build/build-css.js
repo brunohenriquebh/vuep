@@ -28,3 +28,4 @@ processor.process(load(file), { from: resolve(__dirname, '../src/style/', file) 
   }).catch(function (err) {
     console.log(err)
   })
+  

@@ -1,4 +1,11 @@
-import Vuep from './components/playground'
+import Vuep from './components/playground.vue'
+import toasted from 'vue-toasted';
+
+
+
+
+
+
 
 Vuep.config = function (opts) {
   Vuep.props.options.default = () => opts
@@ -7,6 +14,11 @@ Vuep.config = function (opts) {
 function install (Vue, opts) {
   Vuep.config(opts)
   Vue.component(Vuep.name, Vuep)
+  Vue.use(toasted)
+  //Vue.component(VueGridLayout.GridLayout.name, VueGridLayout.GridLayout)
+  //Vue.component(VueGridLayout.GridItem.name, VueGridLayout.GridItem)
+  
+
 }
 
 Vuep.install = install
