@@ -30358,11 +30358,11 @@ __vue_render__$1._withStripped = true;
   /* style */
   var __vue_inject_styles__$1 = function (inject) {
     if (!inject) { return }
-    inject("data-v-79b97a13_0", { source: "\n.editor[data-v-79b97a13] .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master\\src\\components\\editor.vue","editor.vue"],"names":[],"mappings":";AA+JA;EACA,uBAAA;EACA,aAAA;EACA,oBAAA;CC9JC","file":"editor.vue","sourcesContent":[null,".editor >>> .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n"]}, media: undefined });
+    inject("data-v-57871250_0", { source: "\n.editor[data-v-57871250] .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\editor.vue","editor.vue"],"names":[],"mappings":";AA+JA;EACA,uBAAA;EACA,aAAA;EACA,oBAAA;CC9JC","file":"editor.vue","sourcesContent":[null,".editor >>> .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n"]}, media: undefined });
 
   };
   /* scoped */
-  var __vue_scope_id__$1 = "data-v-79b97a13";
+  var __vue_scope_id__$1 = "data-v-57871250";
   /* module identifier */
   var __vue_module_identifier__$1 = undefined;
   /* functional template */
@@ -30376,7 +30376,7 @@ __vue_render__$1._withStripped = true;
     var component = (typeof script === 'function' ? script.options : script) || {};
 
     // For security concerns, we use only base name in production mode.
-    component.__file = "D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master\\src\\components\\editor.vue";
+    component.__file = "D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\editor.vue";
 
     if (!component.render) {
       component.render = template.render;
@@ -30599,7 +30599,7 @@ __vue_render__$2._withStripped = true;
   /* style */
   var __vue_inject_styles__$2 = undefined;
   /* scoped */
-  var __vue_scope_id__$2 = "data-v-1b904208";
+  var __vue_scope_id__$2 = "data-v-76ff45df";
   /* module identifier */
   var __vue_module_identifier__$2 = undefined;
   /* functional template */
@@ -30613,7 +30613,7 @@ __vue_render__$2._withStripped = true;
     var component = (typeof script === 'function' ? script.options : script) || {};
 
     // For security concerns, we use only base name in production mode.
-    component.__file = "D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master\\src\\components\\preview.vue";
+    component.__file = "D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\preview.vue";
 
     if (!component.render) {
       component.render = template.render;
@@ -36448,7 +36448,7 @@ __vue_render__._withStripped = true;
   /* style */
   var __vue_inject_styles__ = function (inject) {
     if (!inject) { return }
-    inject("data-v-55c0831f_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AA4PA;EACA,cAAA;CC3PC;AD6PD;EACA,YAAA;CC3PC;AD6PD;EACA,aAAA;CC3PC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
+    inject("data-v-a721afc8_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AA4PA;EACA,cAAA;CC3PC;AD6PD;EACA,YAAA;CC3PC;AD6PD;EACA,aAAA;CC3PC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
 
   };
   /* scoped */
@@ -36466,7 +36466,7 @@ __vue_render__._withStripped = true;
     var component = (typeof script$$1 === 'function' ? script$$1.options : script$$1) || {};
 
     // For security concerns, we use only base name in production mode.
-    component.__file = "D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep-master\\src\\components\\playground.vue";
+    component.__file = "D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue";
 
     if (!component.render) {
       component.render = template.render;
