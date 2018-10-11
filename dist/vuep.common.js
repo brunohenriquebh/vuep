@@ -22776,10 +22776,9 @@ Iframe.prototype.createIframe = function createIframe () {
 //
 //
 //
-//
 
 var script$2 = {
-  props: ['value'],
+  props: ['iframe'],
 
   mounted: function mounted() {
     /*this.iframe = createIframe({
@@ -22787,14 +22786,33 @@ var script$2 = {
       sandboxAttributes
     });*/
 
-    this.$emit('iframeCreated',  this.$refs.iframe );
+   //const     html = `<!DOCTYPE html><html><head></head><body><div id="app"></div></body></html>`;
+    
+    var iframe$$1 = document.getElementById(this.iframe);
+
+   iframe$$1.setAttribute('scrolling', 'yes');
+    iframe$$1.style.width = '100%';
+    iframe$$1.style.height = '100%';
+    iframe$$1.style.border = '0';
+    iframe$$1.style.display = 'block';
+    this.$el.parentNode.replaceChild(iframe$$1, this.$el);
+    /*
+
+
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(html);
+    iframe.contentWindow.document.close();
+
+         this.$emit('iframeCreated',  this.$refs.iframe );
+    */
+
+   
+  },
+  created: function created(){
+
   },
 
-  /*watch: {
-    value(val) {
-      this.iframe.setHTML(val);
-    }
-  }*/
+
 };
 
 /* script */
@@ -22806,17 +22824,7 @@ var __vue_render__$2 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "preview" }, [
-    _c("iframe", {
-      ref: "iframe",
-      attrs: {
-        sandbox:
-          "allow-modals allow-forms allow-pointer-lock allow-popups allow-same-origin allow-scripts",
-        src:
-          "data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3C%2Fhead%3E%3Cbody%3E%3Cdiv%20id%3D%22app%22%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E"
-      }
-    })
-  ])
+  return _c("div", { staticClass: "preview" }, [_c("div", { ref: "iframe" })])
 };
 var __vue_staticRenderFns__$2 = [];
 __vue_render__$2._withStripped = true;
@@ -22824,7 +22832,7 @@ __vue_render__$2._withStripped = true;
   /* style */
   var __vue_inject_styles__$2 = undefined;
   /* scoped */
-  var __vue_scope_id__$2 = "data-v-2d217d18";
+  var __vue_scope_id__$2 = "data-v-831e5b28";
   /* module identifier */
   var __vue_module_identifier__$2 = undefined;
   /* functional template */
@@ -28174,6 +28182,7 @@ var script = {
     elInputHtml: String,
     elInputCss: String,
     elInputJs: String,
+    iframe: String
   },
 
   mounted: function mounted(){
@@ -28182,6 +28191,7 @@ var script = {
 	      {"x":5,"y":3,"w":5,"h":2,"i":"1", "bindMethod": this.changeJs, "mode": "js", "elementName": this.elInputJs},
 	      {"x":10,"y":3,"w":2,"h":2,"i":"2", "bindMethod": this.changeCss, "mode": "css", "elementName": this.elInputCss},
         {"x":0,"y":0,"w":12,"h":3,"i":"3", "bindMethod": null, "mode": "preview"} ];
+      this.initialized = true;
 
 
   },
@@ -28189,6 +28199,7 @@ var script = {
   },
 
   data: function () { return ({
+    initialized: false,
     preview: '',
     code: '',
     code_html : '',
@@ -28200,9 +28211,8 @@ var script = {
 
   methods: {
       iframeCreated: function iframeCreated(iframe){
-        console.log("Executando iframeCreated");
-        console.log(iframe);
-        this.iframe = iframe;
+  
+        //this.iframe = iframe;
         this.compile();
 
       },
@@ -28225,26 +28235,34 @@ var script = {
 
       },
     compile: function compile() {
+   
       //Begin template with string_vue: to custom browser-vue-loader parse  as string
       this.code =  'string_vue: <template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
    
-      if (!this.code ) {
+      if (!this.code || !this.initialized ) {
         return;
       }
 
-
-
         if(this.iframe!= null){
-              var iframe = this.iframe;
-                 var   innerDoc = (iframe.contentDocument) 
-                    ? iframe.contentDocument 
-                    : iframe.contentWindow.document;
+            var iframe = document.getElementById(this.iframe);
+            
+            var   innerDoc = (iframe.contentDocument) 
+              ? iframe.contentDocument 
+              : iframe.contentWindow.document;
 
-                            loadVue( this.code).then(function (App) {
-          new Vue({
-            render: function (h) { return h(App); }
-          }).$mount(innerDoc.getElementById("app"));
-        });
+            loadVueOnDocument( this.code, innerDoc).then(
+              function (App) {
+            
+
+                var component =     new Vue({
+                  render: function (h) { return h(App); },
+                }).$mount();
+
+                innerDoc.body.innerHTML = "";
+                innerDoc.body.appendChild(component.$el);
+
+            }
+        );
 
 
         }
@@ -28319,8 +28337,7 @@ var __vue_render__ = function() {
                 item["bindMethod"] == null
                   ? _c("preview", {
                       staticClass: "panel",
-                      attrs: { value: _vm.preview },
-                      on: { iframeCreated: _vm.iframeCreated }
+                      attrs: { value: _vm.preview, iframe: _vm.iframe }
                     })
                   : _vm._e()
               ],
@@ -28359,7 +28376,7 @@ __vue_render__._withStripped = true;
   /* style */
   var __vue_inject_styles__ = function (inject) {
     if (!inject) { return }
-    inject("data-v-d12eb2de_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AAwKA;EACA,cAAA;CCvKC;ADyKD;EACA,YAAA;CCvKC;ADyKD;EACA,aAAA;CCvKC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
+    inject("data-v-3306e7f5_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AAkLA;EACA,cAAA;CCjLC;ADmLD;EACA,YAAA;CCjLC;ADmLD;EACA,aAAA;CCjLC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
 
   };
   /* scoped */

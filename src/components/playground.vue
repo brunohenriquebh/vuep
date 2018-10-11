@@ -33,12 +33,8 @@
                    drag-ignore-from=".CodeMirror"
                     >
                    <editor v-if="item['bindMethod'] != null"  class="panel" v-bind:data="item" @change="item['bindMethod']" :mode="item.mode" :element-name="item['elementName']"></editor>
-                   <preview  v-if="item['bindMethod'] == null"  :value="preview" class="panel" @iframeCreated="iframeCreated"></preview>
+                   <preview  v-if="item['bindMethod'] == null"  :value="preview" class="panel" :iframe="iframe"></preview>
         </grid-item>
-
-
-  
-   
 
     </grid-layout>
 
@@ -77,6 +73,7 @@ export default {
     elInputHtml: String,
     elInputCss: String,
     elInputJs: String,
+    iframe: String
   },
 
   mounted(){
@@ -86,13 +83,18 @@ export default {
 	      {"x":10,"y":3,"w":2,"h":2,"i":"2", "bindMethod": this.changeCss, "mode": "css", "elementName": this.elInputCss},
         {"x":0,"y":0,"w":12,"h":3,"i":"3", "bindMethod": null, "mode": "preview"},
       ];
+      this.initialized = true;
 
 
   },
  created(){
+     this.code_html  = document.getElementById(this.elInputHtml).value;
+     this.code_css  = document.getElementById(this.elInputCss).value;
+     this.code_js  = document.getElementById(this.elInputJs).value;
   },
 
   data: () => ({
+    initialized: false,
     preview: '',
     code: '',
     code_html : '',
@@ -103,13 +105,6 @@ export default {
   }),
 
   methods: {
-      iframeCreated(iframe){
-        console.log("Executando iframeCreated");
-        console.log(iframe);
-        this.iframe = iframe;
-        this.compile();
-
-      },
       changeHtml(code) {
         this.code_html = code;
         document.getElementById(this.elInputHtml).value = code; //Atualiza o input hidden tbm
@@ -129,26 +124,34 @@ export default {
 
       },
     compile() {
+   
       //Begin template with string_vue: to custom browser-vue-loader parse  as string
       this.code =  'string_vue: <template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
    
-      if (!this.code ) {
+      if (!this.code || !this.initialized ) {
         return;
       }
 
-
-
         if(this.iframe!= null){
-              var iframe = this.iframe;
-                 var   innerDoc = (iframe.contentDocument) 
-                    ? iframe.contentDocument 
-                    : iframe.contentWindow.document;
+            var iframe = document.getElementById(this.iframe);
+            
+            var   innerDoc = (iframe.contentDocument) 
+              ? iframe.contentDocument 
+              : iframe.contentWindow.document;
 
-                            loadVue( this.code).then(App => {
-          new Vue({
-            render: h => h(App)
-          }).$mount(innerDoc.getElementById("app"))
-        })
+            loadVueOnDocument( this.code, innerDoc).then(
+              App => {
+            
+
+                var component =     new Vue({
+                  render: h => h(App),
+                }).$mount();
+
+                innerDoc.body.innerHTML = "";
+                innerDoc.body.appendChild(component.$el);
+
+            }
+        )
 
 
         }

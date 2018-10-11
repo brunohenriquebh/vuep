@@ -1,7 +1,6 @@
 <template>
   <div class="preview">
-    <iframe san123dbox="allow-modals allow-forms allow-pointer-lock allow-popups allow-scripts" s123rc="data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3C%2Fhead%3E%3Cbody%3E%3Cdiv%20id%3D%22app%22%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E" ref="iframe">
-    </iframe>
+     <div ref="iframe"></div>
   </div>
 </template>
 
@@ -10,7 +9,7 @@ import createIframe from '../utils/iframe';
 
 
 export default {
-  props: ['value'],
+  props: ['iframe'],
 
   mounted() {
     /*this.iframe = createIframe({
@@ -18,23 +17,25 @@ export default {
       sandboxAttributes
     });*/
 
-    console.log("########Aqui");
-    console.log(this.$refs.iframe.contentWindow);
-
-   const     html = `<!DOCTYPE html><html><head></head><body><div id="app"></div></body></html>`;
-    const iframe = this.$refs.iframe;
+   //const     html = `<!DOCTYPE html><html><head></head><body><div id="app"></div></body></html>`;
+    
+    const iframe = document.getElementById(this.iframe);
 
    iframe.setAttribute('scrolling', 'yes');
     iframe.style.width = '100%';
     iframe.style.height = '100%';
     iframe.style.border = '0';
+    iframe.style.display = 'block';
+    this.$el.parentNode.replaceChild(iframe, this.$el);
+    /*
 
-    //this.$el.parentNode.replaceChild(iframe, this.$el);
+
     iframe.contentWindow.document.open();
     iframe.contentWindow.document.write(html);
     iframe.contentWindow.document.close();
 
          this.$emit('iframeCreated',  this.$refs.iframe );
+    */
 
    
   },
@@ -42,11 +43,7 @@ export default {
 
   },
 
-  /*watch: {
-    value(val) {
-      this.iframe.setHTML(val);
-    }
-  }*/
+
 };
 </script>
 

@@ -55,9 +55,11 @@
 
 
 <div id="vue-editor">
-    <vuep template="#example" el-input-html="component-html_init" el-input-css="component-css_init" el-input-js="component-js_init">
+    <vuep :iframe="iframe" template="#example" el-input-html="component-html_init" el-input-css="component-css_init" el-input-js="component-js_init">
     </vuep>
 </div>
+
+<iframe id="previewIframe" style="display:none"></iframe>
 
 <script>
     Vue.use(Vuep /*, { codemirror options } */)
@@ -71,12 +73,14 @@ window.initVue = function(){
 
     setTimeout( function(){
 
+        var iframe = document.getElementById('previewIframe');
+
 
 
         new Vue({
           el: '#vue-editor',
           //components: window.arrExternalComponents, 
-          data: {iframe: false}  ,
+          data: {iframe: "previewIframe"}  ,
           created: function () {
             //this.code = 
         
@@ -89,3 +93,4 @@ window.initVue = function(){
 
 window.initVue();
 </script>
+
