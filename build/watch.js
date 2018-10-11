@@ -31,9 +31,9 @@ export default {
   dest: 'dist/vuep.js',
   format: 'umd',
   moduleName: 'Vuep',
-  external: [ 'vue/dist/vue.common'],
+  external: [ 'vue'],
   globals: {
-    'vue/dist/vue.common': 'Vue',
+    'vue': 'Vue',
     //'vue-grid-layout': 'VueGridLayout' 
   }
 }

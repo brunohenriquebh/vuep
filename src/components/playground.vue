@@ -33,7 +33,7 @@
                    drag-ignore-from=".CodeMirror"
                     >
                    <editor v-if="item['bindMethod'] != null"  class="panel" v-bind:data="item" @change="item['bindMethod']" :mode="item.mode" :element-name="item['elementName']"></editor>
-                   <preview  v-if="item['bindMethod'] == null"  :value="preview" class="panel"></preview>
+                   <preview  v-if="item['bindMethod'] == null"  :value="preview" class="panel" @iframeCreated="iframeCreated"></preview>
         </grid-item>
 
 
@@ -103,6 +103,13 @@ export default {
   }),
 
   methods: {
+      iframeCreated(iframe){
+        console.log("Executando iframeCreated");
+        console.log(iframe);
+        this.iframe = iframe;
+        this.compile();
+
+      },
       changeHtml(code) {
         this.code_html = code;
         document.getElementById(this.elInputHtml).value = code; //Atualiza o input hidden tbm
@@ -122,119 +129,36 @@ export default {
 
       },
     compile() {
-  
-      this.code =  '<template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
+      //Begin template with string_vue: to custom browser-vue-loader parse  as string
+      this.code =  'string_vue: <template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
    
       if (!this.code ) {
         return;
       }
-      const imports = [];
-      const { template, script, styles, customBlocks } = parseComponent(this.code, {scoped:true});
-      let config;
 
-      if ((config = customBlocks.find(n => n.type === 'config'))) {
-        params.clear();
-        params.parse(config.content);
-      }
 
-      let compiled;
-      const pkgs = [];
-      let scriptContent = 'exports = { default: {} }';
 
-      if (script) {
-        try {
-          compiled = window.Babel.transform(script.content, {
-            presets: ['es2015', 'es2016', 'es2017', 'stage-0'],
-            plugins: [[getImports, { imports }]]
-          }).code;
-        } catch (e) {
-          this.preview = `<pre style="color: red">${e.message}</pre>`;
-          return;
+        if(this.iframe!= null){
+              var iframe = this.iframe;
+                 var   innerDoc = (iframe.contentDocument) 
+                    ? iframe.contentDocument 
+                    : iframe.contentWindow.document;
+
+                            loadVue( this.code).then(App => {
+          new Vue({
+            render: h => h(App)
+          }).$mount(innerDoc.getElementById("app"))
+        })
+
+
         }
-        scriptContent = getPkgs(compiled, imports, pkgs);
-      }
 
-      const heads = this.genHeads();
-      const scripts = [];
-
-      pkgs.forEach(pkg => {
-        scripts.push(
-          `<script src=//packd.now.sh/${pkg.module}${pkg.path}?name=${
-            pkg.name
-          }><\/script>`
-        );
-      });
-
-      styles.forEach(style => {
-        heads.push(`<style>${style.content}</style>`);
-      });
-
-      scripts.push(`
-      <script>
-        var exports = {};
-        ${scriptContent}
-        var component = exports.default;
-        component.template = component.template || ${JSON.stringify(
-          template.content
-        )}
-
-        new parent.Vue(component).$mount(document.getElementById('app'))
-      <\/script>`);
-
-      this.preview = {
-        head: heads.join('\n'),
-        body: '<div id="app"></div>' + scripts.join('\n')
-      };
-    },
-
-    genHeads() {
-      return [];
-      let heads = [];
-
-      params.queryParse(location.search);
-
-      const { pkgs, css, cdn, vue } = params.get();
-      const prefix = CDN_MAP[cdn] || CDN_MAP.unpkg;
-
-      return [].concat(
-        []
-          .concat(vue ? 'vue@' + vue : 'vue', pkgs)
-          .map(
-            pkg =>
-              `<script src=${isAbsouteUrl(pkg) ? '' : prefix}${pkg}><\/script>`
-          ),
-        css.map(
-          item =>
-            `<link rel=stylesheet href=${
-              isAbsouteUrl(item) ? '' : prefix
-            }${item}>`
-        )
-      );
-    },
-
-     upload() {
-      if (!this.code) {
-        this.$toasted('No content', {
-          type: 'error'
-        });
         return;
-      }
-
-      const id =  upload(this.code);
-      history.pushState({}, '', '/' + id);
-      const url = location.href;
-
-      this.$toasted.show(`Hosting in ${url}`, {
-        action: {
-          text: 'Copy',
-          onClick() {
-            copy(url);
-            Vue.toasted.clear();
-          }
-        },
-        duration: 5000
-      });
     }
+
+
+
+
   }
 };
 </script>

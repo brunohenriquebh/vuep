@@ -7,232 +7,85 @@
   <link rel="stylesheet" href="node_modules/codemirror/addon/hint/show-hint.css">
 </head>
 <body>
-  <div>
-    <div id="template">
-      <h3>Template script</h3>
-      <pre>&lt;script v-pre type="text/x-template" id="example"&gt;</pre>
-      <pre>&lt;vuep template="#example"&gt;&lt;/vuep&gt;</pre>
-      <vuep template="#example"></vuep>
-    </div>
-
-    <div id="sfc">
-      <h3>Single File Component</h3>
-      <vuep v-model="value"></vuep>
-    </div>
-
-    <div id="sfc-scope">
-      <h3 id="">Single File Component with &lt;features&gt from scope</h3>
-      <vuep v-model="value" :scope="scope"></vuep>
-    </div>
-
-    <div id="sfc-iframe">
-      <h3>Single File Component displayed in iframe</h3>
-      <vuep v-model="value" iframe></vuep>
-    </div>
-  </div>
-
-<script v-pre type="text/x-template" id="example">
-<style>
-  .main {
-    color: #2c3e50;
-  }
-  .text {
-    color: #4fc08d;
-  }
-</style>
-
-<template>
-  <div class="main">
-    <h2> Welcome to <span class="text">{{ name }}</span>!</h2>
-    <h2>Features</h2>
-    <ul>
-      <li v-for="text in features">{{ text }}</li>
-    </ul>
-  </div>
-</template>
-
-<script>
-  export default {
-    data () {
-      return {
-        name: 'Vuep',
-        features: [
-          'Single File Component',
-          'Babel for ES6/JSX/UMD/CommonJS',
-          'Scoped style',
-          'Customizable JavaScript scope'
-        ]
-      }
-    }
-  }
-</script>
-</script>
+  
 
 <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
 <script src="https://unpkg.com/babel-plugin-transform-vue-jsx"></script>
 <script src="node_modules/codemirror/lib/codemirror.js"></script>
 <script src="node_modules/vue/dist/vue.js"></script>
+<script src="browser-vue-loader.js"></script>
+<script src="vue-grid-layout.umd.js"></script>
+
 <script src="dist/vuep.js"></script>
 
-<script>
-   new Vue({
-     el: '#template',
-   })
-</script>
-<script>
-  new Vue({
-    el: '#sfc',
-    data: function () {
-      return {
-        value: `
-        <style>
-  .main {
-    color: #2c3e50;
-  }
-  .text {
-    color: #4fc08d;
-  }
-</style>
 
-<template>
-  <div class="main">
-    <h2> Welcome to <span class="text">{{ name }}</span>!</h2>
-    <div class="features">
-      <h3>Features</h3>
-      <ul>
-        <li v-for="feature in features">{{ feature }}</li>
-      </ul>
-    </div>
-  </div>
-</template>
-
-<script>
-  export default {
-    data () {
-      return {
-        name: 'Vuep',
-        features: [
-          'Vue Single File Component support',
-          'Scoped style',
-          'UMD and CommonJS build',
-          'Custom JavaScript scope'
+    <input type="hidden" id="component-js_init" class="form-control" name="Component[js_init]" value="export default {
+      data: () => ({
+        fruits: [
+          &quot;Laranja&quot;,
+          &quot;Limao&quot;,
+          &quot;Manga&quot;,
+          &quot;Uva&quot;
         ]
-      }
-    }
-  }`
-      }
-    }
-  })
-</script>
-<script>
-  var Features = {
-    props: {
-      features: Array
-    },
-    template: `<div class="features">
-  <h3>Features</h3>
-  <ul>
-    <li v-for="feature in features">{{ feature }}</li>
-  </ul>
-</div>`
-  }
+      })
+    }">
+ 
+        <input type="hidden" id="component-html_init" class="form-control" name="Component[html_init]" value="  <div>
+            <h2>Hello from PHP Teste 123 1231312</h2>
+            <h3>Demo</h3>
+            <ul>
+              <li v-for=&quot;fruit in fruits&quot;>
+               {{ fruit }}
+              </li>
+            </ul>
+          </div>">
 
-  new Vue({
-    el: '#sfc-scope',
-    data: function () {
-      return {
-        scope: { Features },
-        value: `
-<style>
-  .main {
-    color: #2c3e50;
-  }
-  .text {
-    color: #4fc08d;
-  }
-</style>
 
-<template>
-  <div class="main">
-    <h2> Welcome to <span class="text">{{ name }}</span>!</h2>
-    <features :features="features"></features>
-  </div>
-</template>
+
+  
+            <input type="hidden" id="component-css_init" class="form-control" name="Component[css_init]" value="div {
+              color: #2c3e50;
+              font-family: Arial, sans-serif;
+            }
+            
+            a {
+              color: #42b983;
+            }">
+         
+
+
+<div id="vue-editor">
+    <vuep template="#example" el-input-html="component-html_init" el-input-css="component-css_init" el-input-js="component-js_init">
+    </vuep>
+</div>
 
 <script>
-  export default {
-    components: {
-      Features
-    },
-    data () {
-      return {
-        name: 'Vuep',
-        features: [
-          'Single File Component',
-          'Babel for ES6/JSX/UMD/CommonJS',
-          'Scoped style',
-          'Customizable JavaScript scope'
-        ]
-      }
-    }
-  }<\/script>`
-      }
-    }
-  })
-</script>
-<script>
-  var Features = {
-    props: {
-      features: Array
-    },
-    template: `<div class="features">
-  <h3>Features</h3>
-  <ul>
-    <li v-for="feature in features">{{ feature }}</li>
-  </ul>
-</div>`
-  }
+    Vue.use(Vuep /*, { codemirror options } */)
+// or Vue.component('Vuep', Vuep)
+//Vue.use(httpVueLoader);
+window.arrExternalComponents = {};
+window.initVue = function(){
 
-  new Vue({
-    el: '#sfc-iframe',
-    data: function () {
-      return {
-        scope: { Features },
-        value: `
-<style>
-  .main {
-    color: #2c3e50;
-  }
-  .text {
-    color: #4fc08d;
-  }
-</style>
 
-<template>
-  <div class="main">
-    <h2> Welcome to <span class="text">{{ name }}</span>!</h2>
-    <features :features="features"></features>
-  </div>
-</template>
+    console.log(window.arrExternalComponents);
 
-<script>
-  export default {
-    components: {
-      Features
-    },
-    data () {
-      return {
-        name: 'Vuep',
-        features: [
-          'Single File Component',
-          'Babel for ES6/JSX/UMD/CommonJS',
-          'Scoped style',
-          'Customizable JavaScript scope'
-        ]
-      }
-    }
-  }<\/script>`
-      }
-    }
-  })
+    setTimeout( function(){
+
+
+
+        new Vue({
+          el: '#vue-editor',
+          //components: window.arrExternalComponents, 
+          data: {iframe: false}  ,
+          created: function () {
+            //this.code = 
+        
+            } 
+        }
+        )
+        } , 1000);
+
+}
+
+window.initVue();
 </script>

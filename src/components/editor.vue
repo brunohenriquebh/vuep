@@ -8,8 +8,8 @@
 <script>
 import CodeMirror from 'codemirror';
 import emmet from '@emmetio/codemirror-plugin';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/lucario.css';
+//import 'codemirror/lib/codemirror.css';
+
 import 'codemirror/addon/selection/active-line';
 import 'codemirror/addon/edit/matchbrackets';
 import 'codemirror/mode/vue/vue';

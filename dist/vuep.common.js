@@ -12723,7 +12723,7 @@ var commentOptions = {
  * @param  {Object}  [options] Additional formatter options
  * @return {String}
  */
-function html(tree, profile, options) {
+function html$1(tree, profile, options) {
 	options = Object.assign({}, options);
 	var format = getFormatOptions(options);
 
@@ -13389,7 +13389,7 @@ function formatNodeValue$2(node, profile) {
 	return node.value;
 }
 
-var supportedSyntaxes = { html: html, haml: haml, slim: slim, pug: pug };
+var supportedSyntaxes = { html: html$1, haml: haml, slim: slim, pug: pug };
 
 /**
  * Outputs given parsed abbreviation in specified syntax
@@ -14621,7 +14621,7 @@ function getFormat(syntax, options) {
 	return Object.assign({}, format, options && options.format);
 }
 
-var html$1 = {
+var html$2 = {
 	"a": "a[href]",
 	"a:blank": "a[href='http://${0}' target='_blank' rel='noopener noreferrer']",
 	"a:link": "a[href='http://${0}']",
@@ -15019,7 +15019,7 @@ var xsl$1 = {
     "!!!": "{<?xml version=\"1.0\" encoding=\"UTF-8\"?>}"
 };
 
-var index$7 = { html: html$1, css: css$1, xsl: xsl$1 };
+var index$7 = { html: html$2, css: css$1, xsl: xsl$1 };
 
 var latin = {
 	"common": ["lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipisicing", "elit"],
@@ -22332,12 +22332,6 @@ var index$11 = function (url) {
 	return /^[a-z][a-z0-9+.-]*:/.test(url);
 };
 
-var index$15 = function (str) {
-	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
-		return '%' + c.charCodeAt(0).toString(16).toUpperCase();
-	});
-};
-
 /*
 object-assign
 (c) Sindre Sorhus
@@ -22430,245 +22424,9 @@ var index$17 = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-var strictUriEncode = index$15;
-var objectAssign = index$17;
-
-function encoderForArrayFormat(opts) {
-	switch (opts.arrayFormat) {
-		case 'index':
-			return function (key, value, index) {
-				return value === null ? [
-					encode(key, opts),
-					'[',
-					index,
-					']'
-				].join('') : [
-					encode(key, opts),
-					'[',
-					encode(index, opts),
-					']=',
-					encode(value, opts)
-				].join('');
-			};
-
-		case 'bracket':
-			return function (key, value) {
-				return value === null ? encode(key, opts) : [
-					encode(key, opts),
-					'[]=',
-					encode(value, opts)
-				].join('');
-			};
-
-		default:
-			return function (key, value) {
-				return value === null ? encode(key, opts) : [
-					encode(key, opts),
-					'=',
-					encode(value, opts)
-				].join('');
-			};
-	}
-}
-
-function parserForArrayFormat(opts) {
-	var result;
-
-	switch (opts.arrayFormat) {
-		case 'index':
-			return function (key, value, accumulator) {
-				result = /\[(\d*)\]$/.exec(key);
-
-				key = key.replace(/\[\d*\]$/, '');
-
-				if (!result) {
-					accumulator[key] = value;
-					return;
-				}
-
-				if (accumulator[key] === undefined) {
-					accumulator[key] = {};
-				}
-
-				accumulator[key][result[1]] = value;
-			};
-
-		case 'bracket':
-			return function (key, value, accumulator) {
-				result = /(\[\])$/.exec(key);
-				key = key.replace(/\[\]$/, '');
-
-				if (!result) {
-					accumulator[key] = value;
-					return;
-				} else if (accumulator[key] === undefined) {
-					accumulator[key] = [value];
-					return;
-				}
-
-				accumulator[key] = [].concat(accumulator[key], value);
-			};
-
-		default:
-			return function (key, value, accumulator) {
-				if (accumulator[key] === undefined) {
-					accumulator[key] = value;
-					return;
-				}
-
-				accumulator[key] = [].concat(accumulator[key], value);
-			};
-	}
-}
-
-function encode(value, opts) {
-	if (opts.encode) {
-		return opts.strict ? strictUriEncode(value) : encodeURIComponent(value);
-	}
-
-	return value;
-}
-
-function keysSorter(input) {
-	if (Array.isArray(input)) {
-		return input.sort();
-	} else if (typeof input === 'object') {
-		return keysSorter(Object.keys(input)).sort(function (a, b) {
-			return Number(a) - Number(b);
-		}).map(function (key) {
-			return input[key];
-		});
-	}
-
-	return input;
-}
-
-var extract$1 = function (str) {
-	return str.split('?')[1] || '';
-};
-
-var parse$5 = function (str, opts) {
-	opts = objectAssign({arrayFormat: 'none'}, opts);
-
-	var formatter = parserForArrayFormat(opts);
-
-	// Create an object with no prototype
-	// https://github.com/sindresorhus/query-string/issues/47
-	var ret = Object.create(null);
-
-	if (typeof str !== 'string') {
-		return ret;
-	}
-
-	str = str.trim().replace(/^(\?|#|&)/, '');
-
-	if (!str) {
-		return ret;
-	}
-
-	str.split('&').forEach(function (param) {
-		var parts = param.replace(/\+/g, ' ').split('=');
-		// Firefox (pre 40) decodes `%3D` to `=`
-		// https://github.com/sindresorhus/query-string/pull/37
-		var key = parts.shift();
-		var val = parts.length > 0 ? parts.join('=') : undefined;
-
-		// missing `=` should be `null`:
-		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-		val = val === undefined ? null : decodeURIComponent(val);
-
-		formatter(decodeURIComponent(key), val, ret);
-	});
-
-	return Object.keys(ret).sort().reduce(function (result, key) {
-		var val = ret[key];
-		if (Boolean(val) && typeof val === 'object' && !Array.isArray(val)) {
-			// Sort object keys, not values
-			result[key] = keysSorter(val);
-		} else {
-			result[key] = val;
-		}
-
-		return result;
-	}, Object.create(null));
-};
-
-var stringify = function (obj, opts) {
-	var defaults = {
-		encode: true,
-		strict: true,
-		arrayFormat: 'none'
-	};
-
-	opts = objectAssign(defaults, opts);
-
-	var formatter = encoderForArrayFormat(opts);
-
-	return obj ? Object.keys(obj).sort().map(function (key) {
-		var val = obj[key];
-
-		if (val === undefined) {
-			return '';
-		}
-
-		if (val === null) {
-			return encode(key, opts);
-		}
-
-		if (Array.isArray(val)) {
-			var result = [];
-
-			val.slice().forEach(function (val2) {
-				if (val2 === undefined) {
-					return;
-				}
-
-				result.push(formatter(key, val2, result.length));
-			});
-
-			return result.join('&');
-		}
-
-		return encode(key, opts) + '=' + encode(val, opts);
-	}).filter(function (x) {
-		return x.length > 0;
-	}).join('&') : '';
-};
-
-var index$14 = {
-	extract: extract$1,
-	parse: parse$5,
-	stringify: stringify
-};
-
 var API = 'https://text.cinwell.com';
 
-function upload(text) {
-  Vue$1.toasted.show('Saving...');
 
-  try {
-    var result = fetch(API, {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-      },
-      body: stringify({
-        text: text,
-        hash: 1
-      })
-    });
-
-    Vue$1.toasted.clear();
-
-    return  result.text();
-  } catch (e) {
-    Vue$1.toasted.clear();
-    Vue$1.toasted.show('Failed: ' + e.message, {
-      type: 'error',
-      duration: 2000
-    });
-  }
-}
 
 function downloadURL(hash) {
   return (API + "/" + hash);
@@ -22681,6 +22439,8 @@ function downloadURL(hash) {
 //
 //
 //
+
+//import 'codemirror/lib/codemirror.css';
 
 //emmet(CodeMirror);
 var defaultValueHtml = "  <div>\n    <h2>Hello</h2>\n    <h3>Demo</h3>\n    <ul>\n      <li v-for=\"url in urls\">\n        <a target=\"_blank\" :href=\"url\">{{ url }}</a>\n      </li>\n    </ul>\n  </div>";
@@ -22818,11 +22578,11 @@ __vue_render__$1._withStripped = true;
   /* style */
   var __vue_inject_styles__$1 = function (inject) {
     if (!inject) { return }
-    inject("data-v-170a0764_0", { source: "\n.editor[data-v-170a0764] .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\editor.vue","editor.vue"],"names":[],"mappings":";AAuJA;EACA,uBAAA;EACA,aAAA;EACA,oBAAA;CCtJC","file":"editor.vue","sourcesContent":[null,".editor >>> .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n"]}, media: undefined });
+    inject("data-v-198cfec1_0", { source: "\n.editor[data-v-198cfec1] .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\editor.vue","editor.vue"],"names":[],"mappings":";AAuJA;EACA,uBAAA;EACA,aAAA;EACA,oBAAA;CCtJC","file":"editor.vue","sourcesContent":[null,".editor >>> .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n"]}, media: undefined });
 
   };
   /* scoped */
-  var __vue_scope_id__$1 = "data-v-170a0764";
+  var __vue_scope_id__$1 = "data-v-198cfec1";
   /* module identifier */
   var __vue_module_identifier__$1 = undefined;
   /* functional template */
@@ -22999,47 +22759,42 @@ Iframe.prototype.createIframe = function createIframe () {
   iframe.style.width = '100%';
   iframe.style.height = '100%';
   iframe.style.border = '0';
+  html = "<!DOCTYPE html><html><head></head><body><div id=\"app\"></div></body></html>";
+ // iframe.contentWindow.document.write(html);
+  iframe.contentWindow.document.open();
+  iframe.contentWindow.document.write(html);
+  iframe.contentWindow.document.close();
+  this.$el.parentNode.replaceChild(iframe, this.$el);
+  this.$el = iframe;
+
   return iframe;
 };
 
-var createIframe = function () {
-  var args = [], len = arguments.length;
-  while ( len-- ) args[ len ] = arguments[ len ];
-
-  return new (Function.prototype.bind.apply( Iframe, [ null ].concat( args) ));
-};
-
 //
 //
 //
 //
 //
 //
-
-var sandboxAttributes = [
-  'allow-modals',
-  'allow-forms',
-  'allow-pointer-lock',
-  'allow-popups',
-  'allow-same-origin',
-  'allow-scripts'
-];
+//
 
 var script$2 = {
   props: ['value'],
 
   mounted: function mounted() {
-    this.iframe = createIframe({
+    /*this.iframe = createIframe({
       el: this.$refs.iframe,
-      sandboxAttributes: sandboxAttributes
-    });
+      sandboxAttributes
+    });*/
+
+    this.$emit('iframeCreated',  this.$refs.iframe );
   },
 
-  watch: {
-    value: function value(val) {
+  /*watch: {
+    value(val) {
       this.iframe.setHTML(val);
     }
-  }
+  }*/
 };
 
 /* script */
@@ -23051,7 +22806,17 @@ var __vue_render__$2 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "preview" }, [_c("div", { ref: "iframe" })])
+  return _c("div", { staticClass: "preview" }, [
+    _c("iframe", {
+      ref: "iframe",
+      attrs: {
+        sandbox:
+          "allow-modals allow-forms allow-pointer-lock allow-popups allow-same-origin allow-scripts",
+        src:
+          "data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3C%2Fhead%3E%3Cbody%3E%3Cdiv%20id%3D%22app%22%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E"
+      }
+    })
+  ])
 };
 var __vue_staticRenderFns__$2 = [];
 __vue_render__$2._withStripped = true;
@@ -23059,7 +22824,7 @@ __vue_render__$2._withStripped = true;
   /* style */
   var __vue_inject_styles__$2 = undefined;
   /* scoped */
-  var __vue_scope_id__$2 = "data-v-76ff45df";
+  var __vue_scope_id__$2 = "data-v-2d217d18";
   /* module identifier */
   var __vue_module_identifier__$2 = undefined;
   /* functional template */
@@ -28348,234 +28113,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 });
 
-var browser_1 = browser.parseComponent;
-
-var getImports = function(code, ref) {
-  var imports = ref.imports;
-
-  return {
-    name: 'get-imports',
-
-    visitor: {
-      ImportDeclaration: function ImportDeclaration(path) {
-        imports.push({
-          variables: path.node.specifiers.map(function (spec) { return ({
-            local: spec.local.name,
-            imported: spec.imported ? spec.imported.name : 'default'
-          }); }),
-          module: path.node.source.value
-        });
-        path.remove();
-      }
-    }
-  };
-};
-
-var RE_SCOPED = /^(@[^/]+\/[^/@]+)(?:\/([^@]+))?(?:@([\s\S]+))?/;
-var RE_NORMAL = /^([^/@]+)(?:\/([^@]+))?(?:@([\s\S]+))?/;
-
-var index$19 = function (input) {
-  if (typeof input !== 'string') {
-    throw new TypeError('Expected a string')
-  }
-
-  var matched = input.charAt(0) === '@' ? input.match(RE_SCOPED) : input.match(RE_NORMAL);
-
-  if (!matched) {
-    throw new Error(("[parse-package-name] \"" + input + "\" is not a valid string"))
-  }
-
-  return {
-    name: matched[1],
-    path: matched[2] || '',
-    version: matched[3] || ''
-  }
-};
-
-var getPkgs = function(code, imports, scripts) {
-  var replacements = [];
-
-  for (var i = 0, list = imports.entries(); i < list.length; i += 1) {
-    var ref = list[i];
-    var index = ref[0];
-    var item = ref[1];
-
-    var moduleName = "__npm_module_" + index;
-    var pkg = index$19(item.module);
-    var version = pkg.version || 'latest';
-    scripts.push({
-      path: pkg.path ? ("/" + (pkg.path)) : '',
-      name: moduleName,
-      module:
-        pkg.name === 'vue' && !pkg.path
-          ? ("vue@" + version + "/dist/vue.esm.js")
-          : ((pkg.name) + "@" + version)
-    });
-    var replacement = '\n';
-    for (var i$1 = 0, list$1 = item.variables; i$1 < list$1.length; i$1 += 1) {
-      var variable = list$1[i$1];
-
-      if (variable.imported === 'default') {
-        replacement += "var " + (variable.local) + " = " + moduleName + ".default || " + moduleName + ";\n";
-      } else {
-        replacement += "var " + (variable.local) + " = " + moduleName + "." + (variable.imported) + ";\n";
-      }
-    }
-    if (replacement) {
-      replacements.push(replacement);
-    }
-  }
-
-  if (replacements.length > 0) {
-    code = replacements.join('\n') + code;
-  }
-
-  return code;
-};
-
-var isMergeableObject = function isMergeableObject(value) {
-	return isNonNullObject(value)
-		&& !isSpecial(value)
-};
-
-function isNonNullObject(value) {
-	return !!value && typeof value === 'object'
-}
-
-function isSpecial(value) {
-	var stringValue = Object.prototype.toString.call(value);
-
-	return stringValue === '[object RegExp]'
-		|| stringValue === '[object Date]'
-		|| isReactElement(value)
-}
-
-// see https://github.com/facebook/react/blob/b5ac963fb791d1298e7f396236383bc955f916c1/src/isomorphic/classic/element/ReactElement.js#L21-L25
-var canUseSymbol = typeof Symbol === 'function' && Symbol.for;
-var REACT_ELEMENT_TYPE = canUseSymbol ? Symbol.for('react.element') : 0xeac7;
-
-function isReactElement(value) {
-	return value.$$typeof === REACT_ELEMENT_TYPE
-}
-
-function emptyTarget(val) {
-	return Array.isArray(val) ? [] : {}
-}
-
-function cloneUnlessOtherwiseSpecified(value, options) {
-	return (options.clone !== false && options.isMergeableObject(value))
-		? deepmerge(emptyTarget(value), value, options)
-		: value
-}
-
-function defaultArrayMerge(target, source, options) {
-	return target.concat(source).map(function(element) {
-		return cloneUnlessOtherwiseSpecified(element, options)
-	})
-}
-
-function mergeObject(target, source, options) {
-	var destination = {};
-	if (options.isMergeableObject(target)) {
-		Object.keys(target).forEach(function(key) {
-			destination[key] = cloneUnlessOtherwiseSpecified(target[key], options);
-		});
-	}
-	Object.keys(source).forEach(function(key) {
-		if (!options.isMergeableObject(source[key]) || !target[key]) {
-			destination[key] = cloneUnlessOtherwiseSpecified(source[key], options);
-		} else {
-			destination[key] = deepmerge(target[key], source[key], options);
-		}
-	});
-	return destination
-}
-
-function deepmerge(target, source, options) {
-	options = options || {};
-	options.arrayMerge = options.arrayMerge || defaultArrayMerge;
-	options.isMergeableObject = options.isMergeableObject || isMergeableObject;
-
-	var sourceIsArray = Array.isArray(source);
-	var targetIsArray = Array.isArray(target);
-	var sourceAndTargetTypesMatch = sourceIsArray === targetIsArray;
-
-	if (!sourceAndTargetTypesMatch) {
-		return cloneUnlessOtherwiseSpecified(source, options)
-	} else if (sourceIsArray) {
-		return options.arrayMerge(target, source, options)
-	} else {
-		return mergeObject(target, source, options)
-	}
-}
-
-deepmerge.all = function deepmergeAll(array, options) {
-	if (!Array.isArray(array)) {
-		throw new Error('first argument should be an array')
-	}
-
-	return array.reduce(function(prev, next) {
-		return deepmerge(prev, next, options)
-	}, {})
-};
-
-var deepmerge_1 = deepmerge;
-
-var DEFAULT_PARAMS = {
-  pkgs: [],
-  css: [],
-  cdn: 'unpkg',
-  vue: ''
-};
-
-var params = DEFAULT_PARAMS;
-
-function getArr(str) {
-  if (Array.isArray(str)) {
-    return str;
-  }
-  if (typeof str === 'string') {
-    return str.split(',');
-  }
-  return [];
-}
-
-function clear() {
-  params = DEFAULT_PARAMS;
-}
-
-function parse$6(str) {
-  try {
-    merge$1(JSON.parse(str));
-  } catch (e) {
-    console.error('error', e.message);
-  }
-}
-
-function queryParse(str) {
-  var query = index$14.parse(str);
-  var pkgs = getArr(query.pkg);
-  var css = getArr(query.css);
-  var options = { pkgs: pkgs, css: css };
-
-  if (query.cdn) {
-    options.cdn = query.cdn;
-  }
-  if (query.vue) {
-    options.vue = query.vue;
-  }
-
-  merge$1(options);
-}
-
-function get$1() {
-  return deepmerge_1(DEFAULT_PARAMS, params);
-}
-
-function merge$1(opts) {
-  params = deepmerge_1(params, opts);
-}
-
 //
 //
 //
@@ -28624,11 +28161,6 @@ function merge$1(opts) {
 //
 //
 //
-
-var CDN_MAP = {
-  unpkg: '//unpkg.com/',
-  jsdelivr: '//cdn.jsdelivr.net/npm/'
-};
 
 var script = {
   name: 'vuep',
@@ -28667,6 +28199,13 @@ var script = {
   }); },
 
   methods: {
+      iframeCreated: function iframeCreated(iframe){
+        console.log("Executando iframeCreated");
+        console.log(iframe);
+        this.iframe = iframe;
+        this.compile();
+
+      },
       changeHtml: function changeHtml(code) {
         this.code_html = code;
         document.getElementById(this.elInputHtml).value = code; //Atualiza o input hidden tbm
@@ -28686,113 +28225,36 @@ var script = {
 
       },
     compile: function compile() {
-  
-      this.code =  '<template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
+      //Begin template with string_vue: to custom browser-vue-loader parse  as string
+      this.code =  'string_vue: <template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
    
       if (!this.code ) {
         return;
       }
-      var imports = [];
-      var ref = browser_1(this.code);
-      var template = ref.template;
-      var script = ref.script;
-      var styles = ref.styles;
-      var customBlocks = ref.customBlocks;
-      var config;
 
-      if ((config = customBlocks.find(function (n) { return n.type === 'config'; }))) {
-        clear();
-        parse$6(config.content);
-      }
 
-      var compiled;
-      var pkgs = [];
-      var scriptContent = 'exports = { default: {} }';
 
-      if (script) {
-        try {
-          compiled = window.Babel.transform(script.content, {
-            presets: ['es2015', 'es2016', 'es2017', 'stage-0'],
-            plugins: [[getImports, { imports: imports }]]
-          }).code;
-        } catch (e) {
-          this.preview = "<pre style=\"color: red\">" + (e.message) + "</pre>";
-          return;
-        }
-        scriptContent = getPkgs(compiled, imports, pkgs);
-      }
+        if(this.iframe!= null){
+              var iframe = this.iframe;
+                 var   innerDoc = (iframe.contentDocument) 
+                    ? iframe.contentDocument 
+                    : iframe.contentWindow.document;
 
-      var heads = this.genHeads();
-      var scripts = [];
-
-      pkgs.forEach(function (pkg) {
-        scripts.push(
-          ("<script src=//packd.now.sh/" + (pkg.module) + (pkg.path) + "?name=" + (pkg.name) + "></script>")
-        );
-      });
-
-      styles.forEach(function (style) {
-        heads.push(("<style>" + (style.content) + "</style>"));
-      });
-
-      scripts.push(("\n      <script>\n        var exports = {};\n        " + scriptContent + "\n        var component = exports.default;\n        component.template = component.template || " + (JSON.stringify(
-          template.content
-        )) + "\n\n        new parent.Vue(component).$mount(document.getElementById('app'))\n      </script>"));
-
-      this.preview = {
-        head: heads.join('\n'),
-        body: '<div id="app"></div>' + scripts.join('\n')
-      };
-    },
-
-    genHeads: function genHeads() {
-      return [];
-      var heads = [];
-
-      queryParse(location.search);
-
-      var ref = get$1();
-      var pkgs = ref.pkgs;
-      var css = ref.css;
-      var cdn = ref.cdn;
-      var vue = ref.vue;
-      var prefix = CDN_MAP[cdn] || CDN_MAP.unpkg;
-
-      return [].concat(
-        []
-          .concat(vue ? 'vue@' + vue : 'vue', pkgs)
-          .map(
-            function (pkg) { return ("<script src=" + (index$11(pkg) ? '' : prefix) + pkg + "></script>"); }
-          ),
-        css.map(
-          function (item) { return ("<link rel=stylesheet href=" + (index$11(item) ? '' : prefix) + item + ">"); }
-        )
-      );
-    },
-
-     upload: function upload$1() {
-      if (!this.code) {
-        this.$toasted('No content', {
-          type: 'error'
+                            loadVue( this.code).then(function (App) {
+          new Vue({
+            render: function (h) { return h(App); }
+          }).$mount(innerDoc.getElementById("app"));
         });
+
+
+        }
+
         return;
-      }
-
-      var id =  upload(this.code);
-      history.pushState({}, '', '/' + id);
-      var url = location.href;
-
-      this.$toasted.show(("Hosting in " + url), {
-        action: {
-          text: 'Copy',
-          onClick: function onClick() {
-            copy(url);
-            Vue.toasted.clear();
-          }
-        },
-        duration: 5000
-      });
     }
+
+
+
+
   }
 };
 
@@ -28857,7 +28319,8 @@ var __vue_render__ = function() {
                 item["bindMethod"] == null
                   ? _c("preview", {
                       staticClass: "panel",
-                      attrs: { value: _vm.preview }
+                      attrs: { value: _vm.preview },
+                      on: { iframeCreated: _vm.iframeCreated }
                     })
                   : _vm._e()
               ],
@@ -28896,7 +28359,7 @@ __vue_render__._withStripped = true;
   /* style */
   var __vue_inject_styles__ = function (inject) {
     if (!inject) { return }
-    inject("data-v-5b99065c_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AAoPA;EACA,cAAA;CCnPC;ADqPD;EACA,YAAA;CCnPC;ADqPD;EACA,aAAA;CCnPC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
+    inject("data-v-d12eb2de_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AAwKA;EACA,cAAA;CCvKC;ADyKD;EACA,YAAA;CCvKC;ADyKD;EACA,aAAA;CCvKC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
 
   };
   /* scoped */

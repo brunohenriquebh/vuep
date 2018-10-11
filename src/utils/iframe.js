@@ -37,6 +37,14 @@ class Iframe {
     iframe.style.width = '100%';
     iframe.style.height = '100%';
     iframe.style.border = '0';
+    html = `<!DOCTYPE html><html><head></head><body><div id="app"></div></body></html>`;
+   // iframe.contentWindow.document.write(html);
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(html);
+    iframe.contentWindow.document.close();
+    this.$el.parentNode.replaceChild(iframe, this.$el);
+    this.$el = iframe;
+
     return iframe;
   }
 }

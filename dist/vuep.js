@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('vue')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'vue'], factory) :
-    (factory((global.Vuep = global.Vuep || {}),global.Vue));
-}(this, (function (exports,Vue$1) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('vue')) :
+    typeof define === 'function' && define.amd ? define(['vue'], factory) :
+    (global.Vuep = factory(global.Vue));
+}(this, (function (Vue$1) { 'use strict';
 
 Vue$1 = 'default' in Vue$1 ? Vue$1['default'] : Vue$1;
 
@@ -9726,6 +9726,8 @@ return CodeMirror$1;
 })));
 });
 
+//# sourceMappingURL=config.es.js.map
+
 /**
  * A streaming, character code-based string reader
  */
@@ -10190,6 +10192,9 @@ FieldString.prototype.toString = function toString () {
 	return this.string;
 };
 
+
+//# sourceMappingURL=field-parser.es.js.map
+
 /**
  * Minimalistic backwards stream reader
  */
@@ -10454,11 +10459,27 @@ var defaultOptions$1$1 = {
 };
 
 /**
- * Returns new `line` index which is right after characters beyound `pos` that
- * editor will likely automatically close, e.g. }, ], and quotes
- * @param {String} line
- * @param {Number} pos
- * @return {Number}
+ * Extracts Emmet abbreviation from given string.
+ * The goal of this module is to extract abbreviation from current editor’s line,
+ * e.g. like this: `<span>.foo[title=bar|]</span>` -> `.foo[title=bar]`, where
+ * `|` is a current caret position.
+ * @param {String}  line A text line where abbreviation should be expanded
+ * @param {Number}  [pos] Caret position in line. If not given, uses end-of-line
+ * @param {Object}  [options]
+ * @param {Boolean} [options.lookAhead] Allow parser to look ahead of `pos` index for
+ * searching of missing abbreviation parts. Most editors automatically inserts
+ * closing braces for `[`, `{` and `(`, which will most likely be right after
+ * current caret position. So in order to properly expand abbreviation, user
+ * must explicitly move caret right after auto-inserted braces. With this option
+ * enabled, parser will search for closing braces right after `pos`. Default is `true`
+ * @param {String} [options.syntax] Name of context syntax of expanded abbreviation.
+ * Either 'markup' (default) or 'stylesheet'. In 'stylesheet' syntax, braces `[]`
+ * and `{}` are not supported thus not extracted.
+ * @param {String} [options.prefix] A string that should precede abbreviation in
+ * order to make it successfully extracted. If given, the abbreviation will be
+ * extracted from the nearest `prefix` occurrence.
+ * @return {Object} Object with `abbreviation` and its `location` in given line
+ * if abbreviation can be extracted, `null` otherwise
  */
 function offsetPastAutoClosed(line, pos, options) {
 	// closing quote is allowed only as a next character
@@ -11439,20 +11460,8 @@ function unroll(node) {
 	node.parent.removeChild(node);
 }
 
-/**
- * For every node in given `tree`, finds matching snippet from `registry` and
- * resolves it into a parsed abbreviation. Resolved node is then updated or
- * replaced with matched abbreviation tree.
- *
- * A HTML registry basically contains aliases to another Emmet abbreviations,
- * e.g. a predefined set of name, attribues and so on, possibly a complex
- * abbreviation with multiple elements. So we have to get snippet, parse it
- * and recursively resolve it.
- *
- * @param  {Node} tree                 Parsed Emmet abbreviation
- * @param  {SnippetsRegistry} registry Registry with all available snippets
- * @return {Node} Updated tree
- */
+
+//# sourceMappingURL=abbreviation.es.js.map
 
 var index$1 = function(tree, registry) {
     tree.walk(function (node) { return resolveNode(node, registry); });
@@ -11626,9 +11635,6 @@ function resolveImplicitName(parentName) {
         || (inlineElements.has(parentName) ? 'span' : 'div');
 }
 
-/**
- * Adds missing tag names for given tree depending on node’s parent name
- */
 var implicitTags = function(tree) {
     tree.walk(function (node) {
         // resolve only nameless nodes without content
@@ -12725,7 +12731,7 @@ var commentOptions = {
  * @param  {Object}  [options] Additional formatter options
  * @return {String}
  */
-function html(tree, profile, options) {
+function html$1(tree, profile, options) {
 	options = Object.assign({}, options);
 	var format = getFormatOptions(options);
 
@@ -13391,7 +13397,7 @@ function formatNodeValue$2(node, profile) {
 	return node.value;
 }
 
-var supportedSyntaxes = { html: html, haml: haml, slim: slim, pug: pug };
+var supportedSyntaxes = { html: html$1, haml: haml, slim: slim, pug: pug };
 
 /**
  * Outputs given parsed abbreviation in specified syntax
@@ -13434,9 +13440,9 @@ function supports(syntax) {
 	return !!syntax && syntax in supportedSyntaxes;
 }
 
-/**
- * A wrapper for holding CSS value
- */
+
+//# sourceMappingURL=markup-formatters.es.js.map
+
 var CSSValue = function CSSValue() {
 	this.type = 'css-value';
 	this.value = [];
@@ -14442,6 +14448,9 @@ function resolveNumericValue(property, token, formatOptions) {
 	return token;
 }
 
+
+//# sourceMappingURL=css-snippets-resolver.es.js.map
+
 var defaultFormatOptions = {
 	shortHex: true,
 	between: ': ',
@@ -14623,7 +14632,10 @@ function getFormat(syntax, options) {
 	return Object.assign({}, format, options && options.format);
 }
 
-var html$1 = {
+
+//# sourceMappingURL=stylesheet-formatters.es.js.map
+
+var html$2 = {
 	"a": "a[href]",
 	"a:blank": "a[href='http://${0}' target='_blank' rel='noopener noreferrer']",
 	"a:link": "a[href='http://${0}']",
@@ -15021,7 +15033,7 @@ var xsl$1 = {
     "!!!": "{<?xml version=\"1.0\" encoding=\"UTF-8\"?>}"
 };
 
-var index$7 = { html: html$1, css: css$1, xsl: xsl$1 };
+var index$7 = { html: html$2, css: css$1, xsl: xsl$1 };
 
 var latin = {
 	"common": ["lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipisicing", "elit"],
@@ -15649,12 +15661,6 @@ function strcase(string, type) {
     return string;
 }
 
-/**
- * Expands given abbreviation into code
- * @param  {String|Node} abbr    Abbreviation to parse or already parsed abbreviation
- * @param  {Object} config
- * @return {String}
- */
 function expand(abbr, config) {
 	config = Object.assign({}, config);
 
@@ -15971,6 +15977,9 @@ function getType(type, syntax) {
 	return isStylesheet(syntax) ? 'stylesheet' : 'markup';
 }
 
+
+//# sourceMappingURL=expand.es.js.map
+
 var reProperty$1 = /^([a-z\-]+)(?:\s*:\s*([^\n\r]+))?$/;
 var CSSSnippet$1 = function CSSSnippet(key, value) {
 	this.key = key;
@@ -16039,9 +16048,10 @@ CSSSnippet$1.prototype.keywords = function keywords () {
 Object.defineProperties( CSSSnippet$1.prototype, prototypeAccessors$4 );
 
 /**
- * Check if given string is a keyword candidate
- * @param  {String}  str
- * @return {Boolean}
+ * Nests more specific CSS properties into shorthand ones, e.g.
+ * background-position-x -> background-position -> background
+ * @param  {CSSSnippet[]} snippets
+ * @return {CSSSnippet[]}
  */
 function isKeyword$2(str) {
 	return /^\s*[\w-]+/.test(str);
@@ -16050,6 +16060,9 @@ function isKeyword$2(str) {
 function splitValue$1(value) {
 	return String(value).split('|');
 }
+
+
+//# sourceMappingURL=css-snippets-resolver.es.js.map
 
 var Node$2 = function Node(stream, type, open, close) {
 	this.stream = stream;
@@ -16551,9 +16564,10 @@ var defaultOptions$8 = {
 };
 
 /**
- * Matches known token in current state of given stream
- * @param  {ContentStreamReader} stream
- * @return {Token}
+ * Parses given content into a DOM-like structure
+ * @param  {String|StreamReader} content
+ * @param  {Object} options
+ * @return {Node}
  */
 function match(stream) {
 	// fast-path optimization: check for `<` code
@@ -16596,11 +16610,6 @@ function last(arr) {
 	return arr[arr.length - 1];
 }
 
-/**
- * Returns token used for single indentation in given editor
- * @param  {CodeMirror.Editor} editor
- * @return {String}
- */
 function getIndentation(editor) {
 	if (!editor.getOption('indentWithTabs')) {
 		return repeatString(' ', editor.getOption('indentUnit'));
@@ -16685,10 +16694,12 @@ function rangeFromNode(node) {
 }
 
 /**
- * Check if given position is inside CSS property value
+ * Narrows given `{from, to}` range to first non-whitespace characters in given 
+ * editor content
  * @param {CodeMirror.Editor} editor 
- * @param {CodeMirror.Position} pos 
- * @return {Boolean}
+ * @param {CodeMirror.Position} from 
+ * @param {CodeMirror.Position} [to] 
+ * @returns {Object}
  */
 function isCSSPropertyValue(editor, pos) {
 	var mode = editor.getModeAt(pos);
@@ -16702,13 +16713,12 @@ function isCSSPropertyValue(editor, pos) {
 }
 
 /**
- * Replaces `range` in `editor` with `text` snippet. A snippet is a string containing
- * tabstops/fields like `${index:placeholder}`: this function will locate such 
- * fields and place cursor at first one.
- * Inserted snippet will be automatically matched with current editor indentation
- * @param {CodeMirror.Editor} editor 
- * @param {CodeMirror.Range} range 
- * @param {String} text
+ * Context-aware abbreviation extraction from given editor.
+ * Detects syntax context in `pos` editor location and, if it allows Emmet
+ * abbreviation to be extracted here, returns object with extracted abbreviation,
+ * its location and config.
+ * @param {CodeMirror.Editor} editor
+ * @param {CodeMirror.Position} pos
  */
 function insertSnippet(editor, range, text) {
 	var line = editor.getLine(range.from.line);
@@ -16737,8 +16747,11 @@ function insertSnippet(editor, range, text) {
 var emmetMarkerClass = 'emmet-abbreviation';
 
 /**
- * Removes Emmet abbreviation markers from given editor
+ * Returns parsed abbreviation from given position in `editor`, if possible.
  * @param {CodeMirror.Editor} editor
+ * @param {CodeMirror.Position} pos
+ * @param {Boolean} [contextAware] Use context-aware abbreviation detection
+ * @returns {Abbreviation}
  */
 function clearMarkers(editor) {
 	var markers = editor.getAllMarks();
@@ -16749,6 +16762,12 @@ function clearMarkers(editor) {
 	}
 }
 
+/**
+ * Marks Emmet abbreviation for given editor position, if possible
+ * @param  {CodeMirror.Editor} editor Editor where abbreviation marker should be created
+ * @param  {Abbreviation} model Parsed abbreviation model
+ * @return {CodeMirror.TextMarker} Returns `undefined` if no valid abbreviation under caret
+ */
 var Abbreviation = function Abbreviation(abbreviation, range, config) {
 	this.abbreviation = abbreviation;
 	this.range = range;
@@ -16810,9 +16829,9 @@ Abbreviation.prototype._isValidForStylesheet = function _isValidForStylesheet (e
 };
 
 /**
- * Check if given range is a single caret between tags
- * @param {CodeMirror} editor
- * @param {CodeMirror.range} range
+ * Expand abbreviation command
+ * @param {CodeMirror.Editor} editor
+ * @param {Boolean} contextAware
  */
 function betweenTags(editor, range) {
 	if (equalCursorPos(range.anchor, range.head)) {
@@ -16839,6 +16858,10 @@ function equalCursorPos(a, b) {
 	return a.sticky === b.sticky && cmp(a, b) === 0;
 }
 
+/**
+ * Marks selected text or matched node content with abbreviation
+ * @param {CodeMirror} editor 
+ */
 var EmmetCompletion = function EmmetCompletion(type, editor, range, name, preview, snippet) {
 	this.type = type;
 	this.editor = editor;
@@ -16895,6 +16918,15 @@ SyntaxModel.prototype.nodeForPoint = function nodeForPoint (pos, exclude) {
 
 	return found;
 };
+
+/**
+ * Creates DOM-like model for given text editor
+ * @param  {CodeMirror} editor
+ * @param  {String}     syntax
+ * @return {Node}
+ */
+
+//# sourceMappingURL=emmet-codemirror-plugin.es.js.map
 
 var activeLine = createCommonjsModule(function (module, exports) {
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
@@ -22334,19 +22366,12 @@ var index$11 = function (url) {
 	return /^[a-z][a-z0-9+.-]*:/.test(url);
 };
 
-var index$15 = function (str) {
-	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
-		return '%' + c.charCodeAt(0).toString(16).toUpperCase();
-	});
-};
-
 /*
 object-assign
 (c) Sindre Sorhus
 @license MIT
 */
 
-/* eslint-disable no-unused-vars */
 var getOwnPropertySymbols = Object.getOwnPropertySymbols;
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
@@ -22432,245 +22457,9 @@ var index$17 = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-var strictUriEncode = index$15;
-var objectAssign = index$17;
-
-function encoderForArrayFormat(opts) {
-	switch (opts.arrayFormat) {
-		case 'index':
-			return function (key, value, index) {
-				return value === null ? [
-					encode(key, opts),
-					'[',
-					index,
-					']'
-				].join('') : [
-					encode(key, opts),
-					'[',
-					encode(index, opts),
-					']=',
-					encode(value, opts)
-				].join('');
-			};
-
-		case 'bracket':
-			return function (key, value) {
-				return value === null ? encode(key, opts) : [
-					encode(key, opts),
-					'[]=',
-					encode(value, opts)
-				].join('');
-			};
-
-		default:
-			return function (key, value) {
-				return value === null ? encode(key, opts) : [
-					encode(key, opts),
-					'=',
-					encode(value, opts)
-				].join('');
-			};
-	}
-}
-
-function parserForArrayFormat(opts) {
-	var result;
-
-	switch (opts.arrayFormat) {
-		case 'index':
-			return function (key, value, accumulator) {
-				result = /\[(\d*)\]$/.exec(key);
-
-				key = key.replace(/\[\d*\]$/, '');
-
-				if (!result) {
-					accumulator[key] = value;
-					return;
-				}
-
-				if (accumulator[key] === undefined) {
-					accumulator[key] = {};
-				}
-
-				accumulator[key][result[1]] = value;
-			};
-
-		case 'bracket':
-			return function (key, value, accumulator) {
-				result = /(\[\])$/.exec(key);
-				key = key.replace(/\[\]$/, '');
-
-				if (!result) {
-					accumulator[key] = value;
-					return;
-				} else if (accumulator[key] === undefined) {
-					accumulator[key] = [value];
-					return;
-				}
-
-				accumulator[key] = [].concat(accumulator[key], value);
-			};
-
-		default:
-			return function (key, value, accumulator) {
-				if (accumulator[key] === undefined) {
-					accumulator[key] = value;
-					return;
-				}
-
-				accumulator[key] = [].concat(accumulator[key], value);
-			};
-	}
-}
-
-function encode(value, opts) {
-	if (opts.encode) {
-		return opts.strict ? strictUriEncode(value) : encodeURIComponent(value);
-	}
-
-	return value;
-}
-
-function keysSorter(input) {
-	if (Array.isArray(input)) {
-		return input.sort();
-	} else if (typeof input === 'object') {
-		return keysSorter(Object.keys(input)).sort(function (a, b) {
-			return Number(a) - Number(b);
-		}).map(function (key) {
-			return input[key];
-		});
-	}
-
-	return input;
-}
-
-var extract$1 = function (str) {
-	return str.split('?')[1] || '';
-};
-
-var parse$5 = function (str, opts) {
-	opts = objectAssign({arrayFormat: 'none'}, opts);
-
-	var formatter = parserForArrayFormat(opts);
-
-	// Create an object with no prototype
-	// https://github.com/sindresorhus/query-string/issues/47
-	var ret = Object.create(null);
-
-	if (typeof str !== 'string') {
-		return ret;
-	}
-
-	str = str.trim().replace(/^(\?|#|&)/, '');
-
-	if (!str) {
-		return ret;
-	}
-
-	str.split('&').forEach(function (param) {
-		var parts = param.replace(/\+/g, ' ').split('=');
-		// Firefox (pre 40) decodes `%3D` to `=`
-		// https://github.com/sindresorhus/query-string/pull/37
-		var key = parts.shift();
-		var val = parts.length > 0 ? parts.join('=') : undefined;
-
-		// missing `=` should be `null`:
-		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-		val = val === undefined ? null : decodeURIComponent(val);
-
-		formatter(decodeURIComponent(key), val, ret);
-	});
-
-	return Object.keys(ret).sort().reduce(function (result, key) {
-		var val = ret[key];
-		if (Boolean(val) && typeof val === 'object' && !Array.isArray(val)) {
-			// Sort object keys, not values
-			result[key] = keysSorter(val);
-		} else {
-			result[key] = val;
-		}
-
-		return result;
-	}, Object.create(null));
-};
-
-var stringify = function (obj, opts) {
-	var defaults = {
-		encode: true,
-		strict: true,
-		arrayFormat: 'none'
-	};
-
-	opts = objectAssign(defaults, opts);
-
-	var formatter = encoderForArrayFormat(opts);
-
-	return obj ? Object.keys(obj).sort().map(function (key) {
-		var val = obj[key];
-
-		if (val === undefined) {
-			return '';
-		}
-
-		if (val === null) {
-			return encode(key, opts);
-		}
-
-		if (Array.isArray(val)) {
-			var result = [];
-
-			val.slice().forEach(function (val2) {
-				if (val2 === undefined) {
-					return;
-				}
-
-				result.push(formatter(key, val2, result.length));
-			});
-
-			return result.join('&');
-		}
-
-		return encode(key, opts) + '=' + encode(val, opts);
-	}).filter(function (x) {
-		return x.length > 0;
-	}).join('&') : '';
-};
-
-var index$14 = {
-	extract: extract$1,
-	parse: parse$5,
-	stringify: stringify
-};
-
 var API = 'https://text.cinwell.com';
 
-function upload(text) {
-  Vue$1.toasted.show('Saving...');
 
-  try {
-    var result = fetch(API, {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-      },
-      body: stringify({
-        text: text,
-        hash: 1
-      })
-    });
-
-    Vue$1.toasted.clear();
-
-    return  result.text();
-  } catch (e) {
-    Vue$1.toasted.clear();
-    Vue$1.toasted.show('Failed: ' + e.message, {
-      type: 'error',
-      duration: 2000
-    });
-  }
-}
 
 function downloadURL(hash) {
   return (API + "/" + hash);
@@ -22684,7 +22473,6 @@ function downloadURL(hash) {
 //
 //
 
-//emmet(CodeMirror);
 var defaultValueHtml = "  <div>\n    <h2>Hello</h2>\n    <h3>Demo</h3>\n    <ul>\n      <li v-for=\"url in urls\">\n        <a target=\"_blank\" :href=\"url\">{{ url }}</a>\n      </li>\n    </ul>\n  </div>";
 
 var defaultValueJs = "export default {\n  data: () => ({\n\n    urls: [\n      'https://vuep.run/QingWei-Li/vue-trend/docs/home.vue',\n      'https://vuep.run/QingWei-Li/vuep.run/examples/element-ui.vue?pkg=element-ui&css=element-ui/lib/theme-chalk/index.css',\n      'https://vuep.run/vuetifyjs/vuetifyjs.com/blob/dev/examples/ripples/navigationDrawers.vue?pkg=vuetify&css=vuetify/dist/vuetify.min.css'\n    ]\n  })\n}";
@@ -22820,11 +22608,11 @@ __vue_render__$1._withStripped = true;
   /* style */
   var __vue_inject_styles__$1 = function (inject) {
     if (!inject) { return }
-    inject("data-v-170a0764_0", { source: "\n.editor[data-v-170a0764] .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\editor.vue","editor.vue"],"names":[],"mappings":";AAuJA;EACA,uBAAA;EACA,aAAA;EACA,oBAAA;CCtJC","file":"editor.vue","sourcesContent":[null,".editor >>> .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n"]}, media: undefined });
+    inject("data-v-198cfec1_0", { source: "\n.editor[data-v-198cfec1] .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\editor.vue","editor.vue"],"names":[],"mappings":";AAuJA;EACA,uBAAA;EACA,aAAA;EACA,oBAAA;CCtJC","file":"editor.vue","sourcesContent":[null,".editor >>> .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n"]}, media: undefined });
 
   };
   /* scoped */
-  var __vue_scope_id__$1 = "data-v-170a0764";
+  var __vue_scope_id__$1 = "data-v-198cfec1";
   /* module identifier */
   var __vue_module_identifier__$1 = undefined;
   /* functional template */
@@ -23001,47 +22789,63 @@ Iframe.prototype.createIframe = function createIframe () {
   iframe.style.width = '100%';
   iframe.style.height = '100%';
   iframe.style.border = '0';
+  html = "<!DOCTYPE html><html><head></head><body><div id=\"app\"></div></body></html>";
+ // iframe.contentWindow.document.write(html);
+  iframe.contentWindow.document.open();
+  iframe.contentWindow.document.write(html);
+  iframe.contentWindow.document.close();
+  this.$el.parentNode.replaceChild(iframe, this.$el);
+  this.$el = iframe;
+
   return iframe;
 };
 
-var createIframe = function () {
-  var args = [], len = arguments.length;
-  while ( len-- ) args[ len ] = arguments[ len ];
-
-  return new (Function.prototype.bind.apply( Iframe, [ null ].concat( args) ));
-};
-
 //
 //
 //
 //
 //
 //
-
-var sandboxAttributes = [
-  'allow-modals',
-  'allow-forms',
-  'allow-pointer-lock',
-  'allow-popups',
-  'allow-same-origin',
-  'allow-scripts'
-];
+//
 
 var script$2 = {
   props: ['value'],
 
   mounted: function mounted() {
-    this.iframe = createIframe({
+    /*this.iframe = createIframe({
       el: this.$refs.iframe,
-      sandboxAttributes: sandboxAttributes
-    });
+      sandboxAttributes
+    });*/
+
+    console.log("########Aqui");
+    console.log(this.$refs.iframe.contentWindow);
+
+   var     html = "<!DOCTYPE html><html><head></head><body><div id=\"app\"></div></body></html>";
+    var iframe$$1 = this.$refs.iframe;
+
+   iframe$$1.setAttribute('scrolling', 'yes');
+    iframe$$1.style.width = '100%';
+    iframe$$1.style.height = '100%';
+    iframe$$1.style.border = '0';
+
+    //this.$el.parentNode.replaceChild(iframe, this.$el);
+    iframe$$1.contentWindow.document.open();
+    iframe$$1.contentWindow.document.write(html);
+    iframe$$1.contentWindow.document.close();
+
+         this.$emit('iframeCreated',  this.$refs.iframe );
+
+   
+  },
+  created: function created(){
+
   },
 
-  watch: {
-    value: function value(val) {
+  /*watch: {
+    value(val) {
       this.iframe.setHTML(val);
     }
-  }
+  }*/
 };
 
 /* script */
@@ -23053,7 +22857,17 @@ var __vue_render__$2 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "preview" }, [_c("div", { ref: "iframe" })])
+  return _c("div", { staticClass: "preview" }, [
+    _c("iframe", {
+      ref: "iframe",
+      attrs: {
+        san123dbox:
+          "allow-modals allow-forms allow-pointer-lock allow-popups allow-scripts",
+        s123rc:
+          "data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3C%2Fhead%3E%3Cbody%3E%3Cdiv%20id%3D%22app%22%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E"
+      }
+    })
+  ])
 };
 var __vue_staticRenderFns__$2 = [];
 __vue_render__$2._withStripped = true;
@@ -23061,7 +22875,7 @@ __vue_render__$2._withStripped = true;
   /* style */
   var __vue_inject_styles__$2 = undefined;
   /* scoped */
-  var __vue_scope_id__$2 = "data-v-76ff45df";
+  var __vue_scope_id__$2 = "data-v-6ba517a2";
   /* module identifier */
   var __vue_module_identifier__$2 = undefined;
   /* functional template */
@@ -28350,234 +28164,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 });
 
-var browser_1 = browser.parseComponent;
-
-var getImports = function(code, ref) {
-  var imports = ref.imports;
-
-  return {
-    name: 'get-imports',
-
-    visitor: {
-      ImportDeclaration: function ImportDeclaration(path) {
-        imports.push({
-          variables: path.node.specifiers.map(function (spec) { return ({
-            local: spec.local.name,
-            imported: spec.imported ? spec.imported.name : 'default'
-          }); }),
-          module: path.node.source.value
-        });
-        path.remove();
-      }
-    }
-  };
-};
-
-var RE_SCOPED = /^(@[^/]+\/[^/@]+)(?:\/([^@]+))?(?:@([\s\S]+))?/;
-var RE_NORMAL = /^([^/@]+)(?:\/([^@]+))?(?:@([\s\S]+))?/;
-
-var index$19 = function (input) {
-  if (typeof input !== 'string') {
-    throw new TypeError('Expected a string')
-  }
-
-  var matched = input.charAt(0) === '@' ? input.match(RE_SCOPED) : input.match(RE_NORMAL);
-
-  if (!matched) {
-    throw new Error(("[parse-package-name] \"" + input + "\" is not a valid string"))
-  }
-
-  return {
-    name: matched[1],
-    path: matched[2] || '',
-    version: matched[3] || ''
-  }
-};
-
-var getPkgs = function(code, imports, scripts) {
-  var replacements = [];
-
-  for (var i = 0, list = imports.entries(); i < list.length; i += 1) {
-    var ref = list[i];
-    var index = ref[0];
-    var item = ref[1];
-
-    var moduleName = "__npm_module_" + index;
-    var pkg = index$19(item.module);
-    var version = pkg.version || 'latest';
-    scripts.push({
-      path: pkg.path ? ("/" + (pkg.path)) : '',
-      name: moduleName,
-      module:
-        pkg.name === 'vue' && !pkg.path
-          ? ("vue@" + version + "/dist/vue.esm.js")
-          : ((pkg.name) + "@" + version)
-    });
-    var replacement = '\n';
-    for (var i$1 = 0, list$1 = item.variables; i$1 < list$1.length; i$1 += 1) {
-      var variable = list$1[i$1];
-
-      if (variable.imported === 'default') {
-        replacement += "var " + (variable.local) + " = " + moduleName + ".default || " + moduleName + ";\n";
-      } else {
-        replacement += "var " + (variable.local) + " = " + moduleName + "." + (variable.imported) + ";\n";
-      }
-    }
-    if (replacement) {
-      replacements.push(replacement);
-    }
-  }
-
-  if (replacements.length > 0) {
-    code = replacements.join('\n') + code;
-  }
-
-  return code;
-};
-
-var isMergeableObject = function isMergeableObject(value) {
-	return isNonNullObject(value)
-		&& !isSpecial(value)
-};
-
-function isNonNullObject(value) {
-	return !!value && typeof value === 'object'
-}
-
-function isSpecial(value) {
-	var stringValue = Object.prototype.toString.call(value);
-
-	return stringValue === '[object RegExp]'
-		|| stringValue === '[object Date]'
-		|| isReactElement(value)
-}
-
-// see https://github.com/facebook/react/blob/b5ac963fb791d1298e7f396236383bc955f916c1/src/isomorphic/classic/element/ReactElement.js#L21-L25
-var canUseSymbol = typeof Symbol === 'function' && Symbol.for;
-var REACT_ELEMENT_TYPE = canUseSymbol ? Symbol.for('react.element') : 0xeac7;
-
-function isReactElement(value) {
-	return value.$$typeof === REACT_ELEMENT_TYPE
-}
-
-function emptyTarget(val) {
-	return Array.isArray(val) ? [] : {}
-}
-
-function cloneUnlessOtherwiseSpecified(value, options) {
-	return (options.clone !== false && options.isMergeableObject(value))
-		? deepmerge(emptyTarget(value), value, options)
-		: value
-}
-
-function defaultArrayMerge(target, source, options) {
-	return target.concat(source).map(function(element) {
-		return cloneUnlessOtherwiseSpecified(element, options)
-	})
-}
-
-function mergeObject(target, source, options) {
-	var destination = {};
-	if (options.isMergeableObject(target)) {
-		Object.keys(target).forEach(function(key) {
-			destination[key] = cloneUnlessOtherwiseSpecified(target[key], options);
-		});
-	}
-	Object.keys(source).forEach(function(key) {
-		if (!options.isMergeableObject(source[key]) || !target[key]) {
-			destination[key] = cloneUnlessOtherwiseSpecified(source[key], options);
-		} else {
-			destination[key] = deepmerge(target[key], source[key], options);
-		}
-	});
-	return destination
-}
-
-function deepmerge(target, source, options) {
-	options = options || {};
-	options.arrayMerge = options.arrayMerge || defaultArrayMerge;
-	options.isMergeableObject = options.isMergeableObject || isMergeableObject;
-
-	var sourceIsArray = Array.isArray(source);
-	var targetIsArray = Array.isArray(target);
-	var sourceAndTargetTypesMatch = sourceIsArray === targetIsArray;
-
-	if (!sourceAndTargetTypesMatch) {
-		return cloneUnlessOtherwiseSpecified(source, options)
-	} else if (sourceIsArray) {
-		return options.arrayMerge(target, source, options)
-	} else {
-		return mergeObject(target, source, options)
-	}
-}
-
-deepmerge.all = function deepmergeAll(array, options) {
-	if (!Array.isArray(array)) {
-		throw new Error('first argument should be an array')
-	}
-
-	return array.reduce(function(prev, next) {
-		return deepmerge(prev, next, options)
-	}, {})
-};
-
-var deepmerge_1 = deepmerge;
-
-var DEFAULT_PARAMS = {
-  pkgs: [],
-  css: [],
-  cdn: 'unpkg',
-  vue: ''
-};
-
-var params = DEFAULT_PARAMS;
-
-function getArr(str) {
-  if (Array.isArray(str)) {
-    return str;
-  }
-  if (typeof str === 'string') {
-    return str.split(',');
-  }
-  return [];
-}
-
-function clear() {
-  params = DEFAULT_PARAMS;
-}
-
-function parse$6(str) {
-  try {
-    merge$1(JSON.parse(str));
-  } catch (e) {
-    console.error('error', e.message);
-  }
-}
-
-function queryParse(str) {
-  var query = index$14.parse(str);
-  var pkgs = getArr(query.pkg);
-  var css = getArr(query.css);
-  var options = { pkgs: pkgs, css: css };
-
-  if (query.cdn) {
-    options.cdn = query.cdn;
-  }
-  if (query.vue) {
-    options.vue = query.vue;
-  }
-
-  merge$1(options);
-}
-
-function get$1() {
-  return deepmerge_1(DEFAULT_PARAMS, params);
-}
-
-function merge$1(opts) {
-  params = deepmerge_1(params, opts);
-}
-
 //
 //
 //
@@ -28626,11 +28212,6 @@ function merge$1(opts) {
 //
 //
 //
-
-var CDN_MAP = {
-  unpkg: '//unpkg.com/',
-  jsdelivr: '//cdn.jsdelivr.net/npm/'
-};
 
 var script = {
   name: 'vuep',
@@ -28669,6 +28250,13 @@ var script = {
   }); },
 
   methods: {
+      iframeCreated: function iframeCreated(iframe){
+        console.log("Executando iframeCreated");
+        console.log(iframe);
+        this.iframe = iframe;
+        this.compile();
+
+      },
       changeHtml: function changeHtml(code) {
         this.code_html = code;
         document.getElementById(this.elInputHtml).value = code; //Atualiza o input hidden tbm
@@ -28688,113 +28276,36 @@ var script = {
 
       },
     compile: function compile() {
-  
-      this.code =  '<template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
+      //Begin template with string_vue: to custom browser-vue-loader parse  as string
+      this.code =  'string_vue: <template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
    
       if (!this.code ) {
         return;
       }
-      var imports = [];
-      var ref = browser_1(this.code);
-      var template = ref.template;
-      var script = ref.script;
-      var styles = ref.styles;
-      var customBlocks = ref.customBlocks;
-      var config;
 
-      if ((config = customBlocks.find(function (n) { return n.type === 'config'; }))) {
-        clear();
-        parse$6(config.content);
-      }
 
-      var compiled;
-      var pkgs = [];
-      var scriptContent = 'exports = { default: {} }';
 
-      if (script) {
-        try {
-          compiled = window.Babel.transform(script.content, {
-            presets: ['es2015', 'es2016', 'es2017', 'stage-0'],
-            plugins: [[getImports, { imports: imports }]]
-          }).code;
-        } catch (e) {
-          this.preview = "<pre style=\"color: red\">" + (e.message) + "</pre>";
-          return;
-        }
-        scriptContent = getPkgs(compiled, imports, pkgs);
-      }
+        if(this.iframe!= null){
+              var iframe = this.iframe;
+                 var   innerDoc = (iframe.contentDocument) 
+                    ? iframe.contentDocument 
+                    : iframe.contentWindow.document;
 
-      var heads = this.genHeads();
-      var scripts = [];
-
-      pkgs.forEach(function (pkg) {
-        scripts.push(
-          ("<script src=//packd.now.sh/" + (pkg.module) + (pkg.path) + "?name=" + (pkg.name) + "></script>")
-        );
-      });
-
-      styles.forEach(function (style) {
-        heads.push(("<style>" + (style.content) + "</style>"));
-      });
-
-      scripts.push(("\n      <script>\n        var exports = {};\n        " + scriptContent + "\n        var component = exports.default;\n        component.template = component.template || " + (JSON.stringify(
-          template.content
-        )) + "\n\n        new parent.Vue(component).$mount(document.getElementById('app'))\n      </script>"));
-
-      this.preview = {
-        head: heads.join('\n'),
-        body: '<div id="app"></div>' + scripts.join('\n')
-      };
-    },
-
-    genHeads: function genHeads() {
-      return [];
-      var heads = [];
-
-      queryParse(location.search);
-
-      var ref = get$1();
-      var pkgs = ref.pkgs;
-      var css = ref.css;
-      var cdn = ref.cdn;
-      var vue = ref.vue;
-      var prefix = CDN_MAP[cdn] || CDN_MAP.unpkg;
-
-      return [].concat(
-        []
-          .concat(vue ? 'vue@' + vue : 'vue', pkgs)
-          .map(
-            function (pkg) { return ("<script src=" + (index$11(pkg) ? '' : prefix) + pkg + "></script>"); }
-          ),
-        css.map(
-          function (item) { return ("<link rel=stylesheet href=" + (index$11(item) ? '' : prefix) + item + ">"); }
-        )
-      );
-    },
-
-     upload: function upload$1() {
-      if (!this.code) {
-        this.$toasted('No content', {
-          type: 'error'
+                            loadVue( this.code).then(function (App) {
+          new Vue({
+            render: function (h) { return h(App); }
+          }).$mount(innerDoc.getElementById("app"));
         });
+
+
+        }
+
         return;
-      }
-
-      var id =  upload(this.code);
-      history.pushState({}, '', '/' + id);
-      var url = location.href;
-
-      this.$toasted.show(("Hosting in " + url), {
-        action: {
-          text: 'Copy',
-          onClick: function onClick() {
-            copy(url);
-            Vue.toasted.clear();
-          }
-        },
-        duration: 5000
-      });
     }
+
+
+
+
   }
 };
 
@@ -28859,7 +28370,8 @@ var __vue_render__ = function() {
                 item["bindMethod"] == null
                   ? _c("preview", {
                       staticClass: "panel",
-                      attrs: { value: _vm.preview }
+                      attrs: { value: _vm.preview },
+                      on: { iframeCreated: _vm.iframeCreated }
                     })
                   : _vm._e()
               ],
@@ -28898,7 +28410,7 @@ __vue_render__._withStripped = true;
   /* style */
   var __vue_inject_styles__ = function (inject) {
     if (!inject) { return }
-    inject("data-v-5b99065c_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AAoPA;EACA,cAAA;CCnPC;ADqPD;EACA,YAAA;CCnPC;ADqPD;EACA,aAAA;CCnPC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
+    inject("data-v-d12eb2de_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AAwKA;EACA,cAAA;CCvKC;ADyKD;EACA,YAAA;CCvKC;ADyKD;EACA,aAAA;CCvKC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
 
   };
   /* scoped */
@@ -29075,157 +28587,6 @@ if (typeof Vue !== 'undefined') {
   Vue.use(install); // eslint-disable-line
 }
 
-var jsx$1 = createCommonjsModule(function (module, exports) {
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/LICENSE
-
-(function(mod) {
-  if (typeof exports == "object" && typeof module == "object") // CommonJS
-    { mod(codemirror, xml, javascript); }
-  else if (typeof undefined == "function" && undefined.amd) // AMD
-    { undefined(["../../lib/codemirror", "../xml/xml", "../javascript/javascript"], mod); }
-  else // Plain browser env
-    { mod(CodeMirror); }
-})(function(CodeMirror) {
-  "use strict";
-
-  // Depth means the amount of open braces in JS context, in XML
-  // context 0 means not in tag, 1 means in tag, and 2 means in tag
-  // and js block comment.
-  function Context(state, mode, depth, prev) {
-    this.state = state; this.mode = mode; this.depth = depth; this.prev = prev;
-  }
-
-  function copyContext(context) {
-    return new Context(CodeMirror.copyState(context.mode, context.state),
-                       context.mode,
-                       context.depth,
-                       context.prev && copyContext(context.prev))
-  }
-
-  CodeMirror.defineMode("jsx", function(config, modeConfig) {
-    var xmlMode = CodeMirror.getMode(config, {name: "xml", allowMissing: true, multilineTagIndentPastTag: false, allowMissingTagName: true});
-    var jsMode = CodeMirror.getMode(config, modeConfig && modeConfig.base || "javascript");
-
-    function flatXMLIndent(state) {
-      var tagName = state.tagName;
-      state.tagName = null;
-      var result = xmlMode.indent(state, "");
-      state.tagName = tagName;
-      return result
-    }
-
-    function token(stream, state) {
-      if (state.context.mode == xmlMode)
-        { return xmlToken(stream, state, state.context) }
-      else
-        { return jsToken(stream, state, state.context) }
-    }
-
-    function xmlToken(stream, state, cx) {
-      if (cx.depth == 2) { // Inside a JS /* */ comment
-        if (stream.match(/^.*?\*\//)) { cx.depth = 1; }
-        else { stream.skipToEnd(); }
-        return "comment"
-      }
-
-      if (stream.peek() == "{") {
-        xmlMode.skipAttribute(cx.state);
-
-        var indent = flatXMLIndent(cx.state), xmlContext = cx.state.context;
-        // If JS starts on same line as tag
-        if (xmlContext && stream.match(/^[^>]*>\s*$/, false)) {
-          while (xmlContext.prev && !xmlContext.startOfLine)
-            { xmlContext = xmlContext.prev; }
-          // If tag starts the line, use XML indentation level
-          if (xmlContext.startOfLine) { indent -= config.indentUnit; }
-          // Else use JS indentation level
-          else if (cx.prev.state.lexical) { indent = cx.prev.state.lexical.indented; }
-        // Else if inside of tag
-        } else if (cx.depth == 1) {
-          indent += config.indentUnit;
-        }
-
-        state.context = new Context(CodeMirror.startState(jsMode, indent),
-                                    jsMode, 0, state.context);
-        return null
-      }
-
-      if (cx.depth == 1) { // Inside of tag
-        if (stream.peek() == "<") { // Tag inside of tag
-          xmlMode.skipAttribute(cx.state);
-          state.context = new Context(CodeMirror.startState(xmlMode, flatXMLIndent(cx.state)),
-                                      xmlMode, 0, state.context);
-          return null
-        } else if (stream.match("//")) {
-          stream.skipToEnd();
-          return "comment"
-        } else if (stream.match("/*")) {
-          cx.depth = 2;
-          return token(stream, state)
-        }
-      }
-
-      var style = xmlMode.token(stream, cx.state), cur = stream.current(), stop;
-      if (/\btag\b/.test(style)) {
-        if (/>$/.test(cur)) {
-          if (cx.state.context) { cx.depth = 0; }
-          else { state.context = state.context.prev; }
-        } else if (/^</.test(cur)) {
-          cx.depth = 1;
-        }
-      } else if (!style && (stop = cur.indexOf("{")) > -1) {
-        stream.backUp(cur.length - stop);
-      }
-      return style
-    }
-
-    function jsToken(stream, state, cx) {
-      if (stream.peek() == "<" && jsMode.expressionAllowed(stream, cx.state)) {
-        jsMode.skipExpression(cx.state);
-        state.context = new Context(CodeMirror.startState(xmlMode, jsMode.indent(cx.state, "")),
-                                    xmlMode, 0, state.context);
-        return null
-      }
-
-      var style = jsMode.token(stream, cx.state);
-      if (!style && cx.depth != null) {
-        var cur = stream.current();
-        if (cur == "{") {
-          cx.depth++;
-        } else if (cur == "}") {
-          if (--cx.depth == 0) { state.context = state.context.prev; }
-        }
-      }
-      return style
-    }
-
-    return {
-      startState: function() {
-        return {context: new Context(CodeMirror.startState(jsMode), jsMode)}
-      },
-
-      copyState: function(state) {
-        return {context: copyContext(state.context)}
-      },
-
-      token: token,
-
-      indent: function(state, textAfter, fullLine) {
-        return state.context.mode.indent(state.context.state, textAfter, fullLine)
-      },
-
-      innerMode: function(state) {
-        return state.context
-      }
-    }
-  }, "xml", "javascript");
-
-  CodeMirror.defineMIME("text/jsx", "jsx");
-  CodeMirror.defineMIME("text/typescript-jsx", {name: "jsx", base: {name: "javascript", typescript: true}});
-});
-});
-
-Object.defineProperty(exports, '__esModule', { value: true });
+return Vuep$1;
 
 })));
