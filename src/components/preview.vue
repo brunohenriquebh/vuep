@@ -26,6 +26,8 @@ export default {
     iframe.style.height = '100%';
     iframe.style.border = '0';
     iframe.style.display = 'block';
+    iframe.style.paddingBottom = '40px';
+   
     this.$el.parentNode.replaceChild(iframe, this.$el);
     /*
 
