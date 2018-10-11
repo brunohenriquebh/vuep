@@ -72,7 +72,7 @@
     "codemirror": "^5.22.0"
   },
   "dependencies": {
+    "rollup-plugin-includepaths": "^0.2.3",
     "simple-assign": "^0.1.0"
-
   }
 }

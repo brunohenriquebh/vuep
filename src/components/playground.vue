@@ -42,13 +42,6 @@
 
     </grid-layout>
 
-      <div class="row">
-
-          </div>
-           <div class="row">
-
-   
-           </div>
     </main>
   </section>
 </template>
@@ -106,8 +99,6 @@ export default {
     code_js: '',
     code_css: '',
     layout: [
-
-     // {"x":4,"y":0,"w":2,"h":5,"i":"3", bindMethod: null}
     ]
   }),
 
@@ -132,13 +123,13 @@ export default {
       },
     compile() {
   
-      this.code =  '<template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style>\n'+ this.code_css +'\n<\/style> ';
+      this.code =  '<template>\n'+ this.code_html + '\n<\/template> \n <script>\n'+ this.code_js +'\n<\/script> \n<style scoped>\n'+ this.code_css +'\n<\/style> ';
    
       if (!this.code ) {
         return;
       }
       const imports = [];
-      const { template, script, styles, customBlocks } = parseComponent(this.code);
+      const { template, script, styles, customBlocks } = parseComponent(this.code, {scoped:true});
       let config;
 
       if ((config = customBlocks.find(n => n.type === 'config'))) {
@@ -187,7 +178,7 @@ export default {
           template.content
         )}
 
-        new Vue(component).$mount('#app')
+        new parent.Vue(component).$mount(document.getElementById('app'))
       <\/script>`);
 
       this.preview = {
@@ -197,6 +188,7 @@ export default {
     },
 
     genHeads() {
+      return [];
       let heads = [];
 
       params.queryParse(location.search);

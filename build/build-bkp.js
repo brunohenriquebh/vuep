@@ -6,19 +6,6 @@ var uglify = require('rollup-plugin-uglify')
 var vue = require('rollup-plugin-vue');
 var css = require('@henrikjoreteg/rollup-plugin-css');
 var replace = require('rollup-plugin-replace');
-var  includePaths = require('rollup-plugin-includepaths');
-
-let includePathOptions = {
-  include: {
-    'vue': 'node_modules/vue/dist/vue.common.js',
-    //'vue-router': 'node_modules/vue-router/dist/vue-router.js'
-  },
-  external: [
-    'vue',
-   //'vue-router'
-  ]
-};
-
 
 
 
@@ -27,7 +14,6 @@ var build = function (opts) {
     .rollup({
       entry: 'src/' + opts.entry,
       plugins: [
-        //includePaths(includePathOptions),
         replace({
           'process.env.NODE_ENV': JSON.stringify('production'),
         }),
@@ -48,11 +34,7 @@ var build = function (opts) {
           'node_modules/vue-template-compiler/browser.js': [ 'parseComponent' ]
         }
       }), nodeResolve()].concat(opts.plugins || []),
-      external: ['vue'],
-      globals: {
-        //  codemirror: 'CodeMirror',
-          'vue': 'Vue',
-        }
+      external: ['vue']
     })
     .then(function (bundle) {
       var dest = 'dist/' + (opts.output || opts.entry)
@@ -68,7 +50,7 @@ var build = function (opts) {
             'vue-toasted': 'toasted'
         },
         dest: dest,
-        //external: [ 'vue']
+        external: [ 'vue']
       })
     })
     .catch(function (err) {
@@ -80,10 +62,6 @@ build({
   entry: 'index.umd.js',
   output: 'vuep.js',
   //external: [ 'vue']
-  globals: {
-    //  codemirror: 'CodeMirror',
-      'vue': 'Vue',
-    }
 })
 
 build({

@@ -7,6 +7,7 @@ import toasted from 'vue-toasted';
 
 
 
+
 Vuep.config = function (opts) {
   Vuep.props.options.default = () => opts
 }
