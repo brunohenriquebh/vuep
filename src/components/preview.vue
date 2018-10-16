@@ -27,17 +27,21 @@ export default {
     iframe.style.border = '0';
     iframe.style.display = 'block';
     iframe.style.paddingBottom = '40px';
-   
-    this.$el.parentNode.replaceChild(iframe, this.$el);
-    /*
+    iframe.style.marginTop = '20px';
+    //console.log($(iframe).contents().find("html").html());
+   // var htmlCopy = $(iframe).contents().find("html").html();
+    var htmlCopy  = decodeURI(iframe.getAttribute("data-html")); //Busca o html inicial via attribute para evitar reload duplicado
+    this.$el.parentNode.replaceChild(iframe, this.$el); //Isso gera um reload no iframe e cancela qualquer requisição que ainda não tenha sido finalizada
+     //console.log($(iframe).contents().find("html").html());
+        //  console.log(this.$el);
+    //Exeplo se o iframe busca arquivos externos, estes podem não ser cancelados 
+    
 
 
     iframe.contentWindow.document.open();
-    iframe.contentWindow.document.write(html);
+    iframe.contentWindow.document.write(htmlCopy);
     iframe.contentWindow.document.close();
 
-         this.$emit('iframeCreated',  this.$refs.iframe );
-    */
 
    
   },

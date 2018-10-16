@@ -141,14 +141,14 @@ export default {
 
             loadVueOnDocument( this.code, innerDoc).then(
               App => {
-            
-
                 var component =     new Vue({
                   render: h => h(App),
                 }).$mount();
+                if(innerDoc.body != null){ //<Ja carregou todo o iframe
 
-                innerDoc.body.innerHTML = "";
-                innerDoc.body.appendChild(component.$el);
+                  innerDoc.body.innerHTML = "";
+                  innerDoc.body.appendChild(component.$el);
+                }
 
             }
         )
@@ -177,6 +177,7 @@ export default {
 
  .panel
    height: 100%;
+   padding-top: 20px;
  
 
 

@@ -22796,8 +22796,10 @@ var script$2 = {
     iframe$$1.style.border = '0';
     iframe$$1.style.display = 'block';
     iframe$$1.style.paddingBottom = '40px';
-   
-    this.$el.parentNode.replaceChild(iframe$$1, this.$el);
+    iframe$$1.style.marginTop = '20px';
+    console.log($(iframe$$1).contents().find("html").html());
+    this.$el.parentNode.replaceChild(iframe$$1, this.$el); //Isso gera um reload no iframe e cancela qualquer requisição que ainda não tenha sido finalizada
+    //Exeplo se o iframe busca arquivos externos, estes podem não ser cancelados
     /*
 
 
@@ -22834,7 +22836,7 @@ __vue_render__$2._withStripped = true;
   /* style */
   var __vue_inject_styles__$2 = undefined;
   /* scoped */
-  var __vue_scope_id__$2 = "data-v-6275bdbb";
+  var __vue_scope_id__$2 = "data-v-d45832ea";
   /* module identifier */
   var __vue_module_identifier__$2 = undefined;
   /* functional template */
@@ -28247,14 +28249,14 @@ var script = {
 
             loadVueOnDocument( this.code, innerDoc).then(
               function (App) {
-            
-
                 var component =     new Vue({
                   render: function (h) { return h(App); },
                 }).$mount();
+                if(innerDoc.body != null){ //<Ja carregou todo o iframe
 
-                innerDoc.body.innerHTML = "";
-                innerDoc.body.appendChild(component.$el);
+                  innerDoc.body.innerHTML = "";
+                  innerDoc.body.appendChild(component.$el);
+                }
 
             }
         );
@@ -28371,7 +28373,7 @@ __vue_render__._withStripped = true;
   /* style */
   var __vue_inject_styles__ = function (inject) {
     if (!inject) { return }
-    inject("data-v-15750180_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AA2KA;EACA,cAAA;CC1KC;AD4KD;EACA,YAAA;CC1KC;AD4KD;EACA,aAAA;CC1KC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
+    inject("data-v-a9daeea4_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n  padding-top: 20px;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AA2KA;EACA,cAAA;CC1KC;AD4KD;EACA,YAAA;CC1KC;AD4KD;EACA,aAAA;EACA,kBAAA;CC1KC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n  padding-top: 20px;\n}\n"]}, media: undefined });
 
   };
   /* scoped */

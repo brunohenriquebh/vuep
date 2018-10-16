@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('vue')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'vue'], factory) :
-    (factory((global.Vuep = global.Vuep || {}),global.Vue));
-}(this, (function (exports,Vue$1) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('vue')) :
+    typeof define === 'function' && define.amd ? define(['vue'], factory) :
+    (global.Vuep = factory(global.Vue));
+}(this, (function (Vue$1) { 'use strict';
 
 Vue$1 = 'default' in Vue$1 ? Vue$1['default'] : Vue$1;
 
@@ -9726,6 +9726,8 @@ return CodeMirror$1;
 })));
 });
 
+//# sourceMappingURL=config.es.js.map
+
 /**
  * A streaming, character code-based string reader
  */
@@ -10190,6 +10192,9 @@ FieldString.prototype.toString = function toString () {
 	return this.string;
 };
 
+
+//# sourceMappingURL=field-parser.es.js.map
+
 /**
  * Minimalistic backwards stream reader
  */
@@ -10454,11 +10459,27 @@ var defaultOptions$1$1 = {
 };
 
 /**
- * Returns new `line` index which is right after characters beyound `pos` that
- * editor will likely automatically close, e.g. }, ], and quotes
- * @param {String} line
- * @param {Number} pos
- * @return {Number}
+ * Extracts Emmet abbreviation from given string.
+ * The goal of this module is to extract abbreviation from current editor’s line,
+ * e.g. like this: `<span>.foo[title=bar|]</span>` -> `.foo[title=bar]`, where
+ * `|` is a current caret position.
+ * @param {String}  line A text line where abbreviation should be expanded
+ * @param {Number}  [pos] Caret position in line. If not given, uses end-of-line
+ * @param {Object}  [options]
+ * @param {Boolean} [options.lookAhead] Allow parser to look ahead of `pos` index for
+ * searching of missing abbreviation parts. Most editors automatically inserts
+ * closing braces for `[`, `{` and `(`, which will most likely be right after
+ * current caret position. So in order to properly expand abbreviation, user
+ * must explicitly move caret right after auto-inserted braces. With this option
+ * enabled, parser will search for closing braces right after `pos`. Default is `true`
+ * @param {String} [options.syntax] Name of context syntax of expanded abbreviation.
+ * Either 'markup' (default) or 'stylesheet'. In 'stylesheet' syntax, braces `[]`
+ * and `{}` are not supported thus not extracted.
+ * @param {String} [options.prefix] A string that should precede abbreviation in
+ * order to make it successfully extracted. If given, the abbreviation will be
+ * extracted from the nearest `prefix` occurrence.
+ * @return {Object} Object with `abbreviation` and its `location` in given line
+ * if abbreviation can be extracted, `null` otherwise
  */
 function offsetPastAutoClosed(line, pos, options) {
 	// closing quote is allowed only as a next character
@@ -11439,20 +11460,8 @@ function unroll(node) {
 	node.parent.removeChild(node);
 }
 
-/**
- * For every node in given `tree`, finds matching snippet from `registry` and
- * resolves it into a parsed abbreviation. Resolved node is then updated or
- * replaced with matched abbreviation tree.
- *
- * A HTML registry basically contains aliases to another Emmet abbreviations,
- * e.g. a predefined set of name, attribues and so on, possibly a complex
- * abbreviation with multiple elements. So we have to get snippet, parse it
- * and recursively resolve it.
- *
- * @param  {Node} tree                 Parsed Emmet abbreviation
- * @param  {SnippetsRegistry} registry Registry with all available snippets
- * @return {Node} Updated tree
- */
+
+//# sourceMappingURL=abbreviation.es.js.map
 
 var index$1 = function(tree, registry) {
     tree.walk(function (node) { return resolveNode(node, registry); });
@@ -11626,9 +11635,6 @@ function resolveImplicitName(parentName) {
         || (inlineElements.has(parentName) ? 'span' : 'div');
 }
 
-/**
- * Adds missing tag names for given tree depending on node’s parent name
- */
 var implicitTags = function(tree) {
     tree.walk(function (node) {
         // resolve only nameless nodes without content
@@ -13434,9 +13440,9 @@ function supports(syntax) {
 	return !!syntax && syntax in supportedSyntaxes;
 }
 
-/**
- * A wrapper for holding CSS value
- */
+
+//# sourceMappingURL=markup-formatters.es.js.map
+
 var CSSValue = function CSSValue() {
 	this.type = 'css-value';
 	this.value = [];
@@ -14442,6 +14448,9 @@ function resolveNumericValue(property, token, formatOptions) {
 	return token;
 }
 
+
+//# sourceMappingURL=css-snippets-resolver.es.js.map
+
 var defaultFormatOptions = {
 	shortHex: true,
 	between: ': ',
@@ -14622,6 +14631,9 @@ function getFormat(syntax, options) {
 
 	return Object.assign({}, format, options && options.format);
 }
+
+
+//# sourceMappingURL=stylesheet-formatters.es.js.map
 
 var html$2 = {
 	"a": "a[href]",
@@ -15649,12 +15661,6 @@ function strcase(string, type) {
     return string;
 }
 
-/**
- * Expands given abbreviation into code
- * @param  {String|Node} abbr    Abbreviation to parse or already parsed abbreviation
- * @param  {Object} config
- * @return {String}
- */
 function expand(abbr, config) {
 	config = Object.assign({}, config);
 
@@ -15971,6 +15977,9 @@ function getType(type, syntax) {
 	return isStylesheet(syntax) ? 'stylesheet' : 'markup';
 }
 
+
+//# sourceMappingURL=expand.es.js.map
+
 var reProperty$1 = /^([a-z\-]+)(?:\s*:\s*([^\n\r]+))?$/;
 var CSSSnippet$1 = function CSSSnippet(key, value) {
 	this.key = key;
@@ -16039,9 +16048,10 @@ CSSSnippet$1.prototype.keywords = function keywords () {
 Object.defineProperties( CSSSnippet$1.prototype, prototypeAccessors$4 );
 
 /**
- * Check if given string is a keyword candidate
- * @param  {String}  str
- * @return {Boolean}
+ * Nests more specific CSS properties into shorthand ones, e.g.
+ * background-position-x -> background-position -> background
+ * @param  {CSSSnippet[]} snippets
+ * @return {CSSSnippet[]}
  */
 function isKeyword$2(str) {
 	return /^\s*[\w-]+/.test(str);
@@ -16050,6 +16060,9 @@ function isKeyword$2(str) {
 function splitValue$1(value) {
 	return String(value).split('|');
 }
+
+
+//# sourceMappingURL=css-snippets-resolver.es.js.map
 
 var Node$2 = function Node(stream, type, open, close) {
 	this.stream = stream;
@@ -16551,9 +16564,10 @@ var defaultOptions$8 = {
 };
 
 /**
- * Matches known token in current state of given stream
- * @param  {ContentStreamReader} stream
- * @return {Token}
+ * Parses given content into a DOM-like structure
+ * @param  {String|StreamReader} content
+ * @param  {Object} options
+ * @return {Node}
  */
 function match(stream) {
 	// fast-path optimization: check for `<` code
@@ -16596,11 +16610,6 @@ function last(arr) {
 	return arr[arr.length - 1];
 }
 
-/**
- * Returns token used for single indentation in given editor
- * @param  {CodeMirror.Editor} editor
- * @return {String}
- */
 function getIndentation(editor) {
 	if (!editor.getOption('indentWithTabs')) {
 		return repeatString(' ', editor.getOption('indentUnit'));
@@ -16685,10 +16694,12 @@ function rangeFromNode(node) {
 }
 
 /**
- * Check if given position is inside CSS property value
+ * Narrows given `{from, to}` range to first non-whitespace characters in given 
+ * editor content
  * @param {CodeMirror.Editor} editor 
- * @param {CodeMirror.Position} pos 
- * @return {Boolean}
+ * @param {CodeMirror.Position} from 
+ * @param {CodeMirror.Position} [to] 
+ * @returns {Object}
  */
 function isCSSPropertyValue(editor, pos) {
 	var mode = editor.getModeAt(pos);
@@ -16702,13 +16713,12 @@ function isCSSPropertyValue(editor, pos) {
 }
 
 /**
- * Replaces `range` in `editor` with `text` snippet. A snippet is a string containing
- * tabstops/fields like `${index:placeholder}`: this function will locate such 
- * fields and place cursor at first one.
- * Inserted snippet will be automatically matched with current editor indentation
- * @param {CodeMirror.Editor} editor 
- * @param {CodeMirror.Range} range 
- * @param {String} text
+ * Context-aware abbreviation extraction from given editor.
+ * Detects syntax context in `pos` editor location and, if it allows Emmet
+ * abbreviation to be extracted here, returns object with extracted abbreviation,
+ * its location and config.
+ * @param {CodeMirror.Editor} editor
+ * @param {CodeMirror.Position} pos
  */
 function insertSnippet(editor, range, text) {
 	var line = editor.getLine(range.from.line);
@@ -16737,8 +16747,11 @@ function insertSnippet(editor, range, text) {
 var emmetMarkerClass = 'emmet-abbreviation';
 
 /**
- * Removes Emmet abbreviation markers from given editor
+ * Returns parsed abbreviation from given position in `editor`, if possible.
  * @param {CodeMirror.Editor} editor
+ * @param {CodeMirror.Position} pos
+ * @param {Boolean} [contextAware] Use context-aware abbreviation detection
+ * @returns {Abbreviation}
  */
 function clearMarkers(editor) {
 	var markers = editor.getAllMarks();
@@ -16749,6 +16762,12 @@ function clearMarkers(editor) {
 	}
 }
 
+/**
+ * Marks Emmet abbreviation for given editor position, if possible
+ * @param  {CodeMirror.Editor} editor Editor where abbreviation marker should be created
+ * @param  {Abbreviation} model Parsed abbreviation model
+ * @return {CodeMirror.TextMarker} Returns `undefined` if no valid abbreviation under caret
+ */
 var Abbreviation = function Abbreviation(abbreviation, range, config) {
 	this.abbreviation = abbreviation;
 	this.range = range;
@@ -16810,9 +16829,9 @@ Abbreviation.prototype._isValidForStylesheet = function _isValidForStylesheet (e
 };
 
 /**
- * Check if given range is a single caret between tags
- * @param {CodeMirror} editor
- * @param {CodeMirror.range} range
+ * Expand abbreviation command
+ * @param {CodeMirror.Editor} editor
+ * @param {Boolean} contextAware
  */
 function betweenTags(editor, range) {
 	if (equalCursorPos(range.anchor, range.head)) {
@@ -16839,6 +16858,10 @@ function equalCursorPos(a, b) {
 	return a.sticky === b.sticky && cmp(a, b) === 0;
 }
 
+/**
+ * Marks selected text or matched node content with abbreviation
+ * @param {CodeMirror} editor 
+ */
 var EmmetCompletion = function EmmetCompletion(type, editor, range, name, preview, snippet) {
 	this.type = type;
 	this.editor = editor;
@@ -16895,6 +16918,15 @@ SyntaxModel.prototype.nodeForPoint = function nodeForPoint (pos, exclude) {
 
 	return found;
 };
+
+/**
+ * Creates DOM-like model for given text editor
+ * @param  {CodeMirror} editor
+ * @param  {String}     syntax
+ * @return {Node}
+ */
+
+//# sourceMappingURL=emmet-codemirror-plugin.es.js.map
 
 var activeLine = createCommonjsModule(function (module, exports) {
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
@@ -22340,7 +22372,6 @@ object-assign
 @license MIT
 */
 
-/* eslint-disable no-unused-vars */
 var getOwnPropertySymbols = Object.getOwnPropertySymbols;
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
@@ -22442,9 +22473,6 @@ function downloadURL(hash) {
 //
 //
 
-//import 'codemirror/lib/codemirror.css';
-
-//emmet(CodeMirror);
 var defaultValueHtml = "  <div>\n    <h2>Hello</h2>\n    <h3>Demo</h3>\n    <ul>\n      <li v-for=\"url in urls\">\n        <a target=\"_blank\" :href=\"url\">{{ url }}</a>\n      </li>\n    </ul>\n  </div>";
 
 var defaultValueJs = "export default {\n  data: () => ({\n\n    urls: [\n      'https://vuep.run/QingWei-Li/vue-trend/docs/home.vue',\n      'https://vuep.run/QingWei-Li/vuep.run/examples/element-ui.vue?pkg=element-ui&css=element-ui/lib/theme-chalk/index.css',\n      'https://vuep.run/vuetifyjs/vuetifyjs.com/blob/dev/examples/ripples/navigationDrawers.vue?pkg=vuetify&css=vuetify/dist/vuetify.min.css'\n    ]\n  })\n}";
@@ -22798,17 +22826,21 @@ var script$2 = {
     iframe$$1.style.border = '0';
     iframe$$1.style.display = 'block';
     iframe$$1.style.paddingBottom = '40px';
-   
-    this.$el.parentNode.replaceChild(iframe$$1, this.$el);
-    /*
+    iframe$$1.style.marginTop = '20px';
+    //console.log($(iframe).contents().find("html").html());
+   // var htmlCopy = $(iframe).contents().find("html").html();
+    var htmlCopy  = decodeURI(iframe$$1.getAttribute("data-html")); //Busca o html inicial via attribute para evitar reload duplicado
+    this.$el.parentNode.replaceChild(iframe$$1, this.$el); //Isso gera um reload no iframe e cancela qualquer requisição que ainda não tenha sido finalizada
+     //console.log($(iframe).contents().find("html").html());
+        //  console.log(this.$el);
+    //Exeplo se o iframe busca arquivos externos, estes podem não ser cancelados 
+    
 
 
-    iframe.contentWindow.document.open();
-    iframe.contentWindow.document.write(html);
-    iframe.contentWindow.document.close();
+    iframe$$1.contentWindow.document.open();
+    iframe$$1.contentWindow.document.write(htmlCopy);
+    iframe$$1.contentWindow.document.close();
 
-         this.$emit('iframeCreated',  this.$refs.iframe );
-    */
 
    
   },
@@ -22836,7 +22868,7 @@ __vue_render__$2._withStripped = true;
   /* style */
   var __vue_inject_styles__$2 = undefined;
   /* scoped */
-  var __vue_scope_id__$2 = "data-v-6275bdbb";
+  var __vue_scope_id__$2 = "data-v-9a8505ec";
   /* module identifier */
   var __vue_module_identifier__$2 = undefined;
   /* functional template */
@@ -28249,14 +28281,14 @@ var script = {
 
             loadVueOnDocument( this.code, innerDoc).then(
               function (App) {
-            
-
                 var component =     new Vue({
                   render: function (h) { return h(App); },
                 }).$mount();
+                if(innerDoc.body != null){ //<Ja carregou todo o iframe
 
-                innerDoc.body.innerHTML = "";
-                innerDoc.body.appendChild(component.$el);
+                  innerDoc.body.innerHTML = "";
+                  innerDoc.body.appendChild(component.$el);
+                }
 
             }
         );
@@ -28373,7 +28405,7 @@ __vue_render__._withStripped = true;
   /* style */
   var __vue_inject_styles__ = function (inject) {
     if (!inject) { return }
-    inject("data-v-15750180_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AA2KA;EACA,cAAA;CC1KC;AD4KD;EACA,YAAA;CC1KC;AD4KD;EACA,aAAA;CC1KC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n}\n"]}, media: undefined });
+    inject("data-v-a9daeea4_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n  padding-top: 20px;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AA2KA;EACA,cAAA;CC1KC;AD4KD;EACA,YAAA;CC1KC;AD4KD;EACA,aAAA;EACA,kBAAA;CC1KC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n  padding-top: 20px;\n}\n"]}, media: undefined });
 
   };
   /* scoped */
@@ -28550,157 +28582,6 @@ if (typeof Vue !== 'undefined') {
   Vue.use(install); // eslint-disable-line
 }
 
-var jsx$1 = createCommonjsModule(function (module, exports) {
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/LICENSE
-
-(function(mod) {
-  if (typeof exports == "object" && typeof module == "object") // CommonJS
-    { mod(codemirror, xml, javascript); }
-  else if (typeof undefined == "function" && undefined.amd) // AMD
-    { undefined(["../../lib/codemirror", "../xml/xml", "../javascript/javascript"], mod); }
-  else // Plain browser env
-    { mod(CodeMirror); }
-})(function(CodeMirror) {
-  "use strict";
-
-  // Depth means the amount of open braces in JS context, in XML
-  // context 0 means not in tag, 1 means in tag, and 2 means in tag
-  // and js block comment.
-  function Context(state, mode, depth, prev) {
-    this.state = state; this.mode = mode; this.depth = depth; this.prev = prev;
-  }
-
-  function copyContext(context) {
-    return new Context(CodeMirror.copyState(context.mode, context.state),
-                       context.mode,
-                       context.depth,
-                       context.prev && copyContext(context.prev))
-  }
-
-  CodeMirror.defineMode("jsx", function(config, modeConfig) {
-    var xmlMode = CodeMirror.getMode(config, {name: "xml", allowMissing: true, multilineTagIndentPastTag: false, allowMissingTagName: true});
-    var jsMode = CodeMirror.getMode(config, modeConfig && modeConfig.base || "javascript");
-
-    function flatXMLIndent(state) {
-      var tagName = state.tagName;
-      state.tagName = null;
-      var result = xmlMode.indent(state, "");
-      state.tagName = tagName;
-      return result
-    }
-
-    function token(stream, state) {
-      if (state.context.mode == xmlMode)
-        { return xmlToken(stream, state, state.context) }
-      else
-        { return jsToken(stream, state, state.context) }
-    }
-
-    function xmlToken(stream, state, cx) {
-      if (cx.depth == 2) { // Inside a JS /* */ comment
-        if (stream.match(/^.*?\*\//)) { cx.depth = 1; }
-        else { stream.skipToEnd(); }
-        return "comment"
-      }
-
-      if (stream.peek() == "{") {
-        xmlMode.skipAttribute(cx.state);
-
-        var indent = flatXMLIndent(cx.state), xmlContext = cx.state.context;
-        // If JS starts on same line as tag
-        if (xmlContext && stream.match(/^[^>]*>\s*$/, false)) {
-          while (xmlContext.prev && !xmlContext.startOfLine)
-            { xmlContext = xmlContext.prev; }
-          // If tag starts the line, use XML indentation level
-          if (xmlContext.startOfLine) { indent -= config.indentUnit; }
-          // Else use JS indentation level
-          else if (cx.prev.state.lexical) { indent = cx.prev.state.lexical.indented; }
-        // Else if inside of tag
-        } else if (cx.depth == 1) {
-          indent += config.indentUnit;
-        }
-
-        state.context = new Context(CodeMirror.startState(jsMode, indent),
-                                    jsMode, 0, state.context);
-        return null
-      }
-
-      if (cx.depth == 1) { // Inside of tag
-        if (stream.peek() == "<") { // Tag inside of tag
-          xmlMode.skipAttribute(cx.state);
-          state.context = new Context(CodeMirror.startState(xmlMode, flatXMLIndent(cx.state)),
-                                      xmlMode, 0, state.context);
-          return null
-        } else if (stream.match("//")) {
-          stream.skipToEnd();
-          return "comment"
-        } else if (stream.match("/*")) {
-          cx.depth = 2;
-          return token(stream, state)
-        }
-      }
-
-      var style = xmlMode.token(stream, cx.state), cur = stream.current(), stop;
-      if (/\btag\b/.test(style)) {
-        if (/>$/.test(cur)) {
-          if (cx.state.context) { cx.depth = 0; }
-          else { state.context = state.context.prev; }
-        } else if (/^</.test(cur)) {
-          cx.depth = 1;
-        }
-      } else if (!style && (stop = cur.indexOf("{")) > -1) {
-        stream.backUp(cur.length - stop);
-      }
-      return style
-    }
-
-    function jsToken(stream, state, cx) {
-      if (stream.peek() == "<" && jsMode.expressionAllowed(stream, cx.state)) {
-        jsMode.skipExpression(cx.state);
-        state.context = new Context(CodeMirror.startState(xmlMode, jsMode.indent(cx.state, "")),
-                                    xmlMode, 0, state.context);
-        return null
-      }
-
-      var style = jsMode.token(stream, cx.state);
-      if (!style && cx.depth != null) {
-        var cur = stream.current();
-        if (cur == "{") {
-          cx.depth++;
-        } else if (cur == "}") {
-          if (--cx.depth == 0) { state.context = state.context.prev; }
-        }
-      }
-      return style
-    }
-
-    return {
-      startState: function() {
-        return {context: new Context(CodeMirror.startState(jsMode), jsMode)}
-      },
-
-      copyState: function(state) {
-        return {context: copyContext(state.context)}
-      },
-
-      token: token,
-
-      indent: function(state, textAfter, fullLine) {
-        return state.context.mode.indent(state.context.state, textAfter, fullLine)
-      },
-
-      innerMode: function(state) {
-        return state.context
-      }
-    }
-  }, "xml", "javascript");
-
-  CodeMirror.defineMIME("text/jsx", "jsx");
-  CodeMirror.defineMIME("text/typescript-jsx", {name: "jsx", base: {name: "javascript", typescript: true}});
-});
-});
-
-Object.defineProperty(exports, '__esModule', { value: true });
+return Vuep$1;
 
 })));
