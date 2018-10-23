@@ -55,7 +55,14 @@
 
 
 <div id="vue-editor">
-    <vuep :iframe="iframe" template="#example" el-input-html="component-html_init" el-input-css="component-css_init" el-input-js="component-js_init">
+    <vuep 
+    :iframe="iframe" 
+    template="#example" 
+    el-input-html="component-html_init" 
+    el-input-css="component-css_init" 
+    el-input-js="component-js_init" 
+    complex-preview-url="http://localhost:8080/#/"
+    >
     </vuep>
 </div>
 
@@ -80,7 +87,7 @@ window.initVue = function(){
         new Vue({
           el: '#vue-editor',
           //components: window.arrExternalComponents, 
-          data: {iframe: "previewIframe"}  ,
+          data: {iframe: "previewIframe" , layout: []}  ,
           created: function () {
             //this.code = 
         

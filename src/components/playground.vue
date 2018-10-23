@@ -22,6 +22,7 @@
             :vertical-compact="false"
             :margin="[10, 10]"
             :use-css-transforms="false"
+            @layout-updated="layoutUpdatedEvent"
     >
      <grid-item v-for="item in layout"
                    :x="item.x"
@@ -32,8 +33,8 @@
                    :key="item.i"
                    drag-ignore-from=".CodeMirror"
                     >
-                   <editor v-if="item['bindMethod'] != null"  class="panel" v-bind:data="item" @change="item['bindMethod']" :mode="item.mode" :element-name="item['elementName']"></editor>
-                   <preview  v-if="item['bindMethod'] == null"  :value="preview" class="panel" :iframe="iframe"></preview>
+                   <editor v-if="item['mode'] != 'preview'"  class="panel" v-bind:data="item" @change="change($event, item['mode'])" :mode="item.mode" :element-name="item['elementName']"></editor>
+                   <preview  v-if="item['mode'] == 'preview'"  :value="preview" class="panel" :iframe="iframe" :complexPreviewUrl="complexPreviewUrl"></preview>
         </grid-item>
 
     </grid-layout>
@@ -73,16 +74,18 @@ export default {
     elInputHtml: String,
     elInputCss: String,
     elInputJs: String,
-    iframe: String
+    iframe: String,
+    layout: Array,
+    complexPreviewUrl: String //Se o component não puder se renderlizado localmente, o iframe é criado com a URL
   },
 
   mounted(){
-      this.layout = [   
-        {"x":0,"y":3,"w":5,"h":2,"i":"0", "bindMethod": this.changeHtml, "mode": "html", "elementName": this.elInputHtml},
-	      {"x":5,"y":3,"w":5,"h":2,"i":"1", "bindMethod": this.changeJs, "mode": "js", "elementName": this.elInputJs},
-	      {"x":10,"y":3,"w":2,"h":2,"i":"2", "bindMethod": this.changeCss, "mode": "css", "elementName": this.elInputCss},
-        {"x":0,"y":0,"w":12,"h":3,"i":"3", "bindMethod": null, "mode": "preview"},
-      ];
+
+
+      //
+      //for(var i in this.layoutConfig){
+
+      //}
       this.initialized = true;
 
 
@@ -91,6 +94,18 @@ export default {
      this.code_html  = document.getElementById(this.elInputHtml).value;
      this.code_css  = document.getElementById(this.elInputCss).value;
      this.code_js  = document.getElementById(this.elInputJs).value;
+    
+
+    if(this.layout == null || this.layout.length == 0)
+        this.layout = [   
+          {"x":0,"y":3,"w":5,"h":2,"i":"0", "mode": "html", "elementName": this.elInputHtml},
+          {"x":5,"y":3,"w":5,"h":2,"i":"1",  "mode": "js", "elementName": this.elInputJs},
+          {"x":10,"y":3,"w":2,"h":2,"i":"2",  "mode": "css", "elementName": this.elInputCss},
+          {"x":0,"y":0,"w":12,"h":3,"i":"3",  "mode": "preview"},
+        ];
+
+
+
   },
 
   data: () => ({
@@ -100,11 +115,29 @@ export default {
     code_html : '',
     code_js: '',
     code_css: '',
-    layout: [
-    ]
+    layoutConfig: []
   }),
 
   methods: {
+      layoutUpdatedEvent: function(newLayout){
+        //console.log("Updated layout: ", newLayout)
+        if(this.$bus != null){
+          this.$bus.$emit('layout-updated-event', newLayout);
+        }
+      },
+      change(code, mode){
+        if(mode == 'html'){
+          this.changeHtml(code);
+        }
+        else if(mode == 'js'){
+          this.changeJs(code);
+        }
+        else if(mode == 'css'){
+          this.changeCss(code);
+
+        }
+
+      },
       changeHtml(code) {
         this.code_html = code;
         document.getElementById(this.elInputHtml).value = code; //Atualiza o input hidden tbm
@@ -132,7 +165,7 @@ export default {
         return;
       }
 
-        if(this.iframe!= null){
+        if(this.iframe!= null  && this.complexPreviewUrl == ''){ //Somente componentes sem url para previsualização complexa são renderizados no component localmente
             var iframe = document.getElementById(this.iframe);
             
             var   innerDoc = (iframe.contentDocument) 
@@ -144,6 +177,7 @@ export default {
                 var component =     new Vue({
                   render: h => h(App),
                 }).$mount();
+
                 if(innerDoc.body != null){ //<Ja carregou todo o iframe
 
                   innerDoc.body.innerHTML = "";

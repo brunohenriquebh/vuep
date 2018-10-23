@@ -9,7 +9,7 @@ import createIframe from '../utils/iframe';
 
 
 export default {
-  props: ['iframe'],
+  props: ['iframe', 'complexPreviewUrl'],
 
   mounted() {
     /*this.iframe = createIframe({
@@ -30,7 +30,9 @@ export default {
     iframe.style.marginTop = '20px';
     //console.log($(iframe).contents().find("html").html());
    // var htmlCopy = $(iframe).contents().find("html").html();
+   if(this.complexPreviewUrl == ''){
     var htmlCopy  = decodeURI(iframe.getAttribute("data-html")); //Busca o html inicial via attribute para evitar reload duplicado
+
     this.$el.parentNode.replaceChild(iframe, this.$el); //Isso gera um reload no iframe e cancela qualquer requisição que ainda não tenha sido finalizada
      //console.log($(iframe).contents().find("html").html());
         //  console.log(this.$el);
@@ -41,6 +43,12 @@ export default {
     iframe.contentWindow.document.open();
     iframe.contentWindow.document.write(htmlCopy);
     iframe.contentWindow.document.close();
+
+    }
+    else{
+          this.$el.parentNode.replaceChild(iframe, this.$el); //Isso gera um reload no iframe e cancela qualquer requisição que ainda não tenha sido finalizada
+          iframe.src = this.complexPreviewUrl;
+    }
 
 
    
