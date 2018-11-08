@@ -14,9 +14,9 @@ import "codemirror/addon/selection/active-line";
 import "codemirror/addon/edit/matchbrackets";
 import "codemirror/mode/vue/vue";
 //Es Lint
+import "../utils/eslint-lint.js";
 //import 'eslint';
 import "codemirror/addon/lint/lint.js";
-import "../utils/eslint-lint.js";
 import "codemirror/mode/javascript/javascript";
 
 //

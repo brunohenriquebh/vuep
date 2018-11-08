@@ -1,101 +1,58 @@
-var rollup = require('rollup')
-var buble = require('rollup-plugin-buble')
-var commonjs = require('rollup-plugin-commonjs')
-var nodeResolve = require('rollup-plugin-node-resolve')
-var uglify = require('rollup-plugin-uglify')
-var vue = require('rollup-plugin-vue');
-var css = require('@henrikjoreteg/rollup-plugin-css');
-var replace = require('rollup-plugin-replace');
-var  includePaths = require('rollup-plugin-includepaths');
+import resolve from "rollup-plugin-node-resolve";
+import commonjs from "rollup-plugin-commonjs";
+import buble from "rollup-plugin-buble";
+import vue from "rollup-plugin-vue";
+import replace from "rollup-plugin-replace";
+import css from "@henrikjoreteg/rollup-plugin-css";
+import json from "rollup-plugin-json";
+import builtins from "rollup-plugin-node-builtins";
+import globals from "rollup-plugin-node-globals";
+import { terser } from "rollup-plugin-terser";
 
-let includePathOptions = {
-  include: {
-    'vue': 'node_modules/vue/dist/vue.common.js',
-    //'vue-router': 'node_modules/vue-router/dist/vue-router.js'
-  },
-  external: [
-    'vue',
-   //'vue-router'
-  ]
-};
+export default {
+  input: "src/index.js",
+  //transforms: { forOf: false },
+  plugins: [
+    replace({
+      "process.env.NODE_ENV": "true"
+    }),
+    css({
+      output: "./dist/vuep.css",
+      minify: true
+    }),
 
+    builtins(),
+    vue(),
+    resolve({ browser: true }), // tells Rollup how to find date-fns in node_modules
+    commonjs({
+      namedExports: {
+        // left-hand side can be an absolute path, a path
+        // relative to the current directory, or the name
+        // of a module in node_modules
+        "node_modules/vue-template-compiler/browser.js": ["parseComponent"]
+      }
+    }),
+    globals(),
 
+    json(),
+    buble({
+      objectAssign: "assign",
+      transforms: {
+        dangerousForOf: true,
+        generator: false
+      }
+    }),
+    terser()
+  ],
 
-
-var build = function (opts) {
-  rollup
-    .rollup({
-      entry: 'src/' + opts.entry,
-      plugins: [
-        //includePaths(includePathOptions),
-        replace({
-          'process.env.NODE_ENV': JSON.stringify('production'),
-        }),
-        css({
-          output: './dist/vuep.css',
-          minify: true
-        }),
-        vue.default(),
-        buble({
-        objectAssign: 'assign',
-        transforms: { dangerousForOf: true }
-      }), 
-      commonjs({
-        namedExports: {
-          // left-hand side can be an absolute path, a path
-          // relative to the current directory, or the name
-          // of a module in node_modules
-          'node_modules/vue-template-compiler/browser.js': [ 'parseComponent' ]
-        }
-      }), nodeResolve()].concat(opts.plugins || []),
-      external: ['vue'],
-      globals: {
-        //  codemirror: 'CodeMirror',
-          'vue': 'Vue',
-        }
-    })
-    .then(function (bundle) {
-      var dest = 'dist/' + (opts.output || opts.entry)
-
-      console.log(dest)
-      bundle.write({
-        format: opts.format || 'umd',
-        moduleName: opts.moduleName || 'Vuep',
-        globals: {
-        //  codemirror: 'CodeMirror',
-          'vue': 'Vue',
-   
-            'vue-toasted': 'toasted'
-        },
-        dest: dest,
-        //external: [ 'vue']
-      })
-    })
-    .catch(function (err) {
-      console.error(err)
-    })
-}
-
-build({
-  entry: 'index.umd.js',
-  output: 'vuep.js',
-  //external: [ 'vue']
-  globals: {
-    //  codemirror: 'CodeMirror',
-      'vue': 'Vue',
+  external: ["vue"],
+  output: {
+    file: "dist/vuep.min.js",
+    name: "Vuep",
+    format: "iife",
+    globals: {
+      vue: "Vue"
+      //'vue-grid-layout': 'VueGridLayout'
     }
-})
-
-build({
-  entry: 'index.umd.js',
-  output: 'vuep.min.js',
-  plugins: [uglify()],
- // external: ['vue/dist/vue.common']
-})
-
-build({
-  entry: 'index.cjs.js',
-  output: 'vuep.common.js',
-  format: 'cjs',
-  external: ['codemirror', 'vue/dist/vue.common']
-})
+  }
+};

@@ -4,7 +4,8 @@
 // Depends on eslint.js from https://github.com/eslint/eslint
 
 //const Linter = require("eslint");
-//import Linter from "eslint4b";
+//import { rules } from "eslint-plugin-vue";
+//console.log(rules);
 //const linter = new Linter();
 
 (function(mod) {
@@ -32,14 +33,6 @@
 
     var errors = window.linter.verify(text, config, { filename: "foo.js" });
 
-    /*
-   column: 3
-fatal: true
-line: 2
-message: "Parsing error: The keyword 'export' is reserved"
-ruleId: null
-severity: 2
-   */
     for (var i = 0; i < errors.length; i++) {
       var error = errors[i];
       var objLintError = {

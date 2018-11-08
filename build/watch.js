@@ -4,9 +4,11 @@ import buble from "rollup-plugin-buble";
 import vue from "rollup-plugin-vue";
 import replace from "rollup-plugin-replace";
 import css from "@henrikjoreteg/rollup-plugin-css";
+import json from "rollup-plugin-json";
+import builtins from "rollup-plugin-node-builtins";
 
 export default {
-  entry: "src/index.js",
+  input: "src/index.js",
   //transforms: { forOf: false },
   plugins: [
     replace({
@@ -17,9 +19,14 @@ export default {
       minify: true
     }),
     vue(),
+    json(),
+    builtins(),
     buble({
       objectAssign: "assign",
-      transforms: { dangerousForOf: true }
+      transforms: {
+        dangerousForOf: true,
+        generator: false
+      }
     }),
     commonjs({
       namedExports: {
@@ -31,12 +38,15 @@ export default {
     }),
     nodeResolve()
   ],
-  dest: "dist/vuep.js",
-  format: "umd",
-  moduleName: "Vuep",
+
   external: ["vue"],
-  globals: {
-    vue: "Vue"
-    //'vue-grid-layout': 'VueGridLayout'
+  output: {
+    file: "dist/vuep.js",
+    name: "Vuep",
+    format: "umd",
+    globals: {
+      vue: "Vue"
+      //'vue-grid-layout': 'VueGridLayout'
+    }
   }
 };
