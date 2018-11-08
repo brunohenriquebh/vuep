@@ -1,2 +1,3 @@
 @import "codemirror/lib/codemirror.css";
-@import 'codemirror/theme/lucario.css';
+@import "codemirror/theme/lucario.css";
+@import "codemirror/addon/lint/lint.css";

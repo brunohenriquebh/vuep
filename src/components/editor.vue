@@ -1,21 +1,28 @@
 <template>
-  <div class="editor">
-    <textarea ref="textarea" class="editor" :name="elementName">
+  <div class="editor"> {{ upperLabel }}
+    <textarea ref="textarea" class="editor" :name="elementName" :id="elementId">
     </textarea>
   </div>
 </template>
 
 <script>
-import CodeMirror from 'codemirror';
-import emmet from '@emmetio/codemirror-plugin';
+import CodeMirror from "codemirror";
+import emmet from "@emmetio/codemirror-plugin";
 //import 'codemirror/lib/codemirror.css';
 
-import 'codemirror/addon/selection/active-line';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/mode/vue/vue';
-import { debounce } from 'throttle-debounce';
-import isAbsouteUrl from 'is-absolute-url';
-import { downloadURL } from '../utils/store';
+import "codemirror/addon/selection/active-line";
+import "codemirror/addon/edit/matchbrackets";
+import "codemirror/mode/vue/vue";
+//Es Lint
+//import 'eslint';
+import "codemirror/addon/lint/lint.js";
+import "../utils/eslint-lint.js";
+import "codemirror/mode/javascript/javascript";
+
+//
+import { debounce } from "throttle-debounce";
+import isAbsouteUrl from "is-absolute-url";
+import { downloadURL } from "../utils/store";
 
 //emmet(CodeMirror);
 const defaultValueHtml = `  <div>
@@ -43,13 +50,21 @@ const defaultValueCss = ``;
 
 export default {
   data: () => ({
-    code: ''
+    code: ""
   }),
-  props: ['mode', 'elementName'],
+  props: ["mode", "elementName", "label"],
 
+  computed: {
+    upperLabel() {
+      return this.label.toUpperCase();
+    },
+    elementId() {
+      return this.elementName +'-text-area';
+    }
+  },
   methods: {
     getFileContent(filename) {
-      this.$toasted.show('Loading file...');
+      this.$toasted.show("Loading file...");
 
       let url;
       if (/^\w+$/.test(filename)) {
@@ -57,21 +72,21 @@ export default {
       } else if (isAbsouteUrl(filename)) {
         url = filename;
       } else if (/^[\w-]+\.\w+/.test(filename)) {
-        url = '//' + filename;
+        url = "//" + filename;
       } else {
         // convert url to github raw url
         const repo = filename.match(
           /^([^\/]+\/[^\/]+)(\/blob\/([\w-]+))?(\S+)$/
         );
-        url = `//raw.githubusercontent.com/${repo[1]}/${repo[3] || 'master'}${
+        url = `//raw.githubusercontent.com/${repo[1]}/${repo[3] || "master"}${
           repo[4]
         }`;
       }
 
       if (/github\.com\//.test(url)) {
         url = url
-          .replace(/github\.com\//, 'raw.githubusercontent.com/')
-          .replace(/\/blob\//, '/');
+          .replace(/github\.com\//, "raw.githubusercontent.com/")
+          .replace(/\/blob\//, "/");
       }
 
       try {
@@ -79,11 +94,11 @@ export default {
 
         this.$toasted.clear();
 
-        return  result.text();
+        return result.text();
       } catch (e) {
         this.$toasted.clear();
-        this.$toasted.show('File not found', {
-          type: 'error',
+        this.$toasted.show("File not found", {
+          type: "error",
           duration: 2000
         });
         return null;
@@ -92,47 +107,52 @@ export default {
   },
 
   mounted() {
-
     var modeParams = {
-      'html': {
-        defaultValue: defaultValueHtml,
-        editorMode:"vue",
-        autofocus:false
-        }, 
-      'css': {
-        defaultValue: defaultValueCss,
-        editorMode:"css",
-        autofocus:false
-        } , 
-      'js': {
-        defaultValue: defaultValueJs,
-        editorMode:"javascript",
-        autofocus:true
-        } 
-        };
- 
+      html: {
+        //defaultValue: defaultValueHtml,
+        editorMode: "vue",
+        autofocus: false,
+        lint: false
+      },
+      css: {
+        //defaultValue: defaultValueCss,
+        editorMode: "css",
+        autofocus: false,
+        lint: false
+      },
+      js: {
+        //defaultValue: defaultValueJs,
+        editorMode: "javascript",
+        autofocus: true,
+        lint: true
+      }
+    };
 
     const editor = CodeMirror.fromTextArea(this.$refs.textarea, {
       mode: modeParams[this.mode].editorMode,
-      theme: 'lucario',
+      theme: "lucario",
       value: `<template></template>`,
       lineNumbers: true,
       tabSize: 2,
       autofocus: modeParams[this.mode].autofocus,
+      lint: modeParams[this.mode].lint,
+      gutters: ["CodeMirror-lint-markers"],
       line: true,
       styleActiveLine: true,
+      indentWithTabs: false,
       matchBrackets: true,
       extraKeys: {
-        Tab: 'emmetExpandAbbreviation',
-        Enter: 'emmetInsertLineBreak'
+          Tab: (cm) => cm.execCommand("indentMore"),
+          "Shift-Tab": (cm) => cm.execCommand("indentLess"),
+        Enter: "emmetInsertLineBreak"
       }
     });
     editor.setSize("100%", "calc(100% - 32px)");
 
     editor.on(
-      'change',
+      "change",
       debounce(200, () => {
-        this.$emit('change', editor.getValue());
+        this.$emit("change", editor.getValue());
       })
     );
 
@@ -141,16 +161,21 @@ export default {
       value = document.getElementById(this.elementName).value;
     }
     value = value || modeParams[this.mode].defaultValue;
+    if (value == null) {
+      value = "";
+    }
+
     editor.setValue(value);
 
-    this.$emit('change', editor.getValue());
+    this.$emit("change", editor.getValue());
   }
 };
 </script>
 
 <style lang="stylus" scoped>
-.editor >>> .CodeMirror
-  border 1px solid black
-  height 100%
-  line-height 1.2rem
+.editor >>> .CodeMirror {
+  border: 1px solid black;
+  height: 100%;
+  line-height: 1.2rem;
+}
 </style>

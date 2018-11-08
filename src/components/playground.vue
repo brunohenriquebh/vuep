@@ -33,8 +33,8 @@
                    :key="item.i"
                    drag-ignore-from=".CodeMirror"
                     >
-                   <editor v-if="item['mode'] != 'preview'"  class="panel" v-bind:data="item" @change="change($event, item['mode'])" :mode="item.mode" :element-name="item['elementName']"></editor>
-                   <preview  v-if="item['mode'] == 'preview'"  :value="preview" class="panel" :iframe="iframe" :complexPreviewUrl="complexPreviewUrl"></preview>
+                   <editor v-if="item['mode'] != 'preview'"  class="panel" v-bind:data="item" @change="change($event, item['mode'])" :mode="item.mode" :element-name="item['elementName']" :label="item['mode']"></editor>
+                   <preview  v-if="item['mode'] == 'preview'"  :value="preview" class="panel" :iframe="iframe" :complexPreviewUrl="complexPreviewUrl" ></preview>
         </grid-item>
 
     </grid-layout>

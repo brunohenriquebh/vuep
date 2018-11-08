@@ -22200,6 +22200,342 @@ var vue = createCommonjsModule(function (module, exports) {
 });
 });
 
+var lint = createCommonjsModule(function (module, exports) {
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: https://codemirror.net/LICENSE
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    { mod(codemirror); }
+  else if (typeof undefined == "function" && undefined.amd) // AMD
+    { undefined(["../../lib/codemirror"], mod); }
+  else // Plain browser env
+    { mod(CodeMirror); }
+})(function(CodeMirror) {
+  "use strict";
+  var GUTTER_ID = "CodeMirror-lint-markers";
+
+  function showTooltip(e, content) {
+    var tt = document.createElement("div");
+    tt.className = "CodeMirror-lint-tooltip";
+    tt.appendChild(content.cloneNode(true));
+    document.body.appendChild(tt);
+
+    function position(e) {
+      if (!tt.parentNode) { return CodeMirror.off(document, "mousemove", position); }
+      tt.style.top = Math.max(0, e.clientY - tt.offsetHeight - 5) + "px";
+      tt.style.left = (e.clientX + 5) + "px";
+    }
+    CodeMirror.on(document, "mousemove", position);
+    position(e);
+    if (tt.style.opacity != null) { tt.style.opacity = 1; }
+    return tt;
+  }
+  function rm(elt) {
+    if (elt.parentNode) { elt.parentNode.removeChild(elt); }
+  }
+  function hideTooltip(tt) {
+    if (!tt.parentNode) { return; }
+    if (tt.style.opacity == null) { rm(tt); }
+    tt.style.opacity = 0;
+    setTimeout(function() { rm(tt); }, 600);
+  }
+
+  function showTooltipFor(e, content, node) {
+    var tooltip = showTooltip(e, content);
+    function hide() {
+      CodeMirror.off(node, "mouseout", hide);
+      if (tooltip) { hideTooltip(tooltip); tooltip = null; }
+    }
+    var poll = setInterval(function() {
+      if (tooltip) { for (var n = node;; n = n.parentNode) {
+        if (n && n.nodeType == 11) { n = n.host; }
+        if (n == document.body) { return; }
+        if (!n) { hide(); break; }
+      } }
+      if (!tooltip) { return clearInterval(poll); }
+    }, 400);
+    CodeMirror.on(node, "mouseout", hide);
+  }
+
+  function LintState(cm, options, hasGutter) {
+    this.marked = [];
+    this.options = options;
+    this.timeout = null;
+    this.hasGutter = hasGutter;
+    this.onMouseOver = function(e) { onMouseOver(cm, e); };
+    this.waitingFor = 0;
+  }
+
+  function parseOptions(_cm, options) {
+    if (options instanceof Function) { return {getAnnotations: options}; }
+    if (!options || options === true) { options = {}; }
+    return options;
+  }
+
+  function clearMarks(cm) {
+    var state = cm.state.lint;
+    if (state.hasGutter) { cm.clearGutter(GUTTER_ID); }
+    for (var i = 0; i < state.marked.length; ++i)
+      { state.marked[i].clear(); }
+    state.marked.length = 0;
+  }
+
+  function makeMarker(labels, severity, multiple, tooltips) {
+    var marker = document.createElement("div"), inner = marker;
+    marker.className = "CodeMirror-lint-marker-" + severity;
+    if (multiple) {
+      inner = marker.appendChild(document.createElement("div"));
+      inner.className = "CodeMirror-lint-marker-multiple";
+    }
+
+    if (tooltips != false) { CodeMirror.on(inner, "mouseover", function(e) {
+      showTooltipFor(e, labels, inner);
+    }); }
+
+    return marker;
+  }
+
+  function getMaxSeverity(a, b) {
+    if (a == "error") { return a; }
+    else { return b; }
+  }
+
+  function groupByLine(annotations) {
+    var lines = [];
+    for (var i = 0; i < annotations.length; ++i) {
+      var ann = annotations[i], line = ann.from.line;
+      (lines[line] || (lines[line] = [])).push(ann);
+    }
+    return lines;
+  }
+
+  function annotationTooltip(ann) {
+    var severity = ann.severity;
+    if (!severity) { severity = "error"; }
+    var tip = document.createElement("div");
+    tip.className = "CodeMirror-lint-message-" + severity;
+    if (typeof ann.messageHTML != 'undefined') {
+        tip.innerHTML = ann.messageHTML;
+    } else {
+        tip.appendChild(document.createTextNode(ann.message));
+    }
+    return tip;
+  }
+
+  function lintAsync(cm, getAnnotations, passOptions) {
+    var state = cm.state.lint;
+    var id = ++state.waitingFor;
+    function abort() {
+      id = -1;
+      cm.off("change", abort);
+    }
+    cm.on("change", abort);
+    getAnnotations(cm.getValue(), function(annotations, arg2) {
+      cm.off("change", abort);
+      if (state.waitingFor != id) { return }
+      if (arg2 && annotations instanceof CodeMirror) { annotations = arg2; }
+      cm.operation(function() {updateLinting(cm, annotations);});
+    }, passOptions, cm);
+  }
+
+  function startLinting(cm) {
+    var state = cm.state.lint, options = state.options;
+    /*
+     * Passing rules in `options` property prevents JSHint (and other linters) from complaining
+     * about unrecognized rules like `onUpdateLinting`, `delay`, `lintOnChange`, etc.
+     */
+    var passOptions = options.options || options;
+    var getAnnotations = options.getAnnotations || cm.getHelper(CodeMirror.Pos(0, 0), "lint");
+    if (!getAnnotations) { return; }
+    if (options.async || getAnnotations.async) {
+      lintAsync(cm, getAnnotations, passOptions);
+    } else {
+      var annotations = getAnnotations(cm.getValue(), passOptions, cm);
+      if (!annotations) { return; }
+      if (annotations.then) { annotations.then(function(issues) {
+        cm.operation(function() {updateLinting(cm, issues);});
+      }); }
+      else { cm.operation(function() {updateLinting(cm, annotations);}); }
+    }
+  }
+
+  function updateLinting(cm, annotationsNotSorted) {
+    clearMarks(cm);
+    var state = cm.state.lint, options = state.options;
+
+    var annotations = groupByLine(annotationsNotSorted);
+
+    for (var line = 0; line < annotations.length; ++line) {
+      var anns = annotations[line];
+      if (!anns) { continue; }
+
+      var maxSeverity = null;
+      var tipLabel = state.hasGutter && document.createDocumentFragment();
+
+      for (var i = 0; i < anns.length; ++i) {
+        var ann = anns[i];
+        var severity = ann.severity;
+        if (!severity) { severity = "error"; }
+        maxSeverity = getMaxSeverity(maxSeverity, severity);
+
+        if (options.formatAnnotation) { ann = options.formatAnnotation(ann); }
+        if (state.hasGutter) { tipLabel.appendChild(annotationTooltip(ann)); }
+
+        if (ann.to) { state.marked.push(cm.markText(ann.from, ann.to, {
+          className: "CodeMirror-lint-mark-" + severity,
+          __annotation: ann
+        })); }
+      }
+
+      if (state.hasGutter)
+        { cm.setGutterMarker(line, GUTTER_ID, makeMarker(tipLabel, maxSeverity, anns.length > 1,
+                                                       state.options.tooltips)); }
+    }
+    if (options.onUpdateLinting) { options.onUpdateLinting(annotationsNotSorted, annotations, cm); }
+  }
+
+  function onChange(cm) {
+    var state = cm.state.lint;
+    if (!state) { return; }
+    clearTimeout(state.timeout);
+    state.timeout = setTimeout(function(){startLinting(cm);}, state.options.delay || 500);
+  }
+
+  function popupTooltips(annotations, e) {
+    var target = e.target || e.srcElement;
+    var tooltip = document.createDocumentFragment();
+    for (var i = 0; i < annotations.length; i++) {
+      var ann = annotations[i];
+      tooltip.appendChild(annotationTooltip(ann));
+    }
+    showTooltipFor(e, tooltip, target);
+  }
+
+  function onMouseOver(cm, e) {
+    var target = e.target || e.srcElement;
+    if (!/\bCodeMirror-lint-mark-/.test(target.className)) { return; }
+    var box = target.getBoundingClientRect(), x = (box.left + box.right) / 2, y = (box.top + box.bottom) / 2;
+    var spans = cm.findMarksAt(cm.coordsChar({left: x, top: y}, "client"));
+
+    var annotations = [];
+    for (var i = 0; i < spans.length; ++i) {
+      var ann = spans[i].__annotation;
+      if (ann) { annotations.push(ann); }
+    }
+    if (annotations.length) { popupTooltips(annotations, e); }
+  }
+
+  CodeMirror.defineOption("lint", false, function(cm, val, old) {
+    if (old && old != CodeMirror.Init) {
+      clearMarks(cm);
+      if (cm.state.lint.options.lintOnChange !== false)
+        { cm.off("change", onChange); }
+      CodeMirror.off(cm.getWrapperElement(), "mouseover", cm.state.lint.onMouseOver);
+      clearTimeout(cm.state.lint.timeout);
+      delete cm.state.lint;
+    }
+
+    if (val) {
+      var gutters = cm.getOption("gutters"), hasLintGutter = false;
+      for (var i = 0; i < gutters.length; ++i) { if (gutters[i] == GUTTER_ID) { hasLintGutter = true; } }
+      var state = cm.state.lint = new LintState(cm, parseOptions(cm, val), hasLintGutter);
+      if (state.options.lintOnChange !== false)
+        { cm.on("change", onChange); }
+      if (state.options.tooltips != false && state.options.tooltips != "gutter")
+        { CodeMirror.on(cm.getWrapperElement(), "mouseover", state.onMouseOver); }
+
+      startLinting(cm);
+    }
+  });
+
+  CodeMirror.defineExtension("performLint", function() {
+    if (this.state.lint) { startLinting(this); }
+  });
+});
+});
+
+var eslintLint = createCommonjsModule(function (module, exports) {
+// CodeMirror Lint addon to use ESLint, copyright (c) by Angelo ZERR and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
+// Depends on eslint.js from https://github.com/eslint/eslint
+
+//const Linter = require("eslint");
+//import Linter from "eslint4b";
+//const linter = new Linter();
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object")
+    // CommonJS
+    { mod(codemirror); }
+  else if (typeof undefined == "function" && undefined.amd)
+    // AMD
+    { undefined(["codemirror"], mod); }
+  // Plain browser env
+  else { mod(CodeMirror); }
+})(function(CodeMirror) {
+  "use strict";
+
+  function validator(text, options) {
+    if (window.linter == undefined) { return []; }
+
+    var result = [],
+      config =
+        window.linterDefaultConfig !== undefined
+          ? window.linterDefaultConfig
+          : {};
+    //var linter = new Linter();
+    //Objeto global window.linter carregado antes usando a nova lib eslint-browser que criei
+
+    var errors = window.linter.verify(text, config, { filename: "foo.js" });
+
+    /*
+   column: 3
+fatal: true
+line: 2
+message: "Parsing error: The keyword 'export' is reserved"
+ruleId: null
+severity: 2
+   */
+    for (var i = 0; i < errors.length; i++) {
+      var error = errors[i];
+      var objLintError = {
+        message: error.message,
+        severity: getSeverity(error),
+        from: getPos(error, true),
+        to: getPos(error, false)
+      };
+      result.push(objLintError);
+    }
+    return result;
+  }
+
+  CodeMirror.registerHelper("lint", "javascript", validator);
+
+  function getPos(error, from) {
+    var line = error.line - 1,
+      ch = from ? error.column : error.column + 1;
+    if (error.node && error.node.loc) {
+      line = from ? error.node.loc.start.line - 1 : error.node.loc.end.line - 1;
+      ch = from ? error.node.loc.start.column : error.node.loc.end.column;
+    }
+    return CodeMirror.Pos(line, ch);
+  }
+
+  function getSeverity(error) {
+    switch (error.severity) {
+      case 1:
+        return "warning";
+      case 2:
+        return "error";
+      default:
+        return "error";
+    }
+  }
+});
+});
+
 /* eslint-disable no-undefined,no-param-reassign,no-shadow */
 
 /**
@@ -22442,22 +22778,26 @@ function downloadURL(hash) {
 
 //import 'codemirror/lib/codemirror.css';
 
-//emmet(CodeMirror);
-var defaultValueHtml = "  <div>\n    <h2>Hello</h2>\n    <h3>Demo</h3>\n    <ul>\n      <li v-for=\"url in urls\">\n        <a target=\"_blank\" :href=\"url\">{{ url }}</a>\n      </li>\n    </ul>\n  </div>";
-
-var defaultValueJs = "export default {\n  data: () => ({\n\n    urls: [\n      'https://vuep.run/QingWei-Li/vue-trend/docs/home.vue',\n      'https://vuep.run/QingWei-Li/vuep.run/examples/element-ui.vue?pkg=element-ui&css=element-ui/lib/theme-chalk/index.css',\n      'https://vuep.run/vuetifyjs/vuetifyjs.com/blob/dev/examples/ripples/navigationDrawers.vue?pkg=vuetify&css=vuetify/dist/vuetify.min.css'\n    ]\n  })\n}";
-
-var defaultValueCss = "";
-
+//Es Lint
+//import 'eslint';
+//
 var script$1 = {
   data: function () { return ({
-    code: ''
+    code: ""
   }); },
-  props: ['mode', 'elementName'],
+  props: ["mode", "elementName", "label"],
 
+  computed: {
+    upperLabel: function upperLabel() {
+      return this.label.toUpperCase();
+    },
+    elementId: function elementId() {
+      return this.elementName +'-text-area';
+    }
+  },
   methods: {
     getFileContent: function getFileContent(filename) {
-      this.$toasted.show('Loading file...');
+      this.$toasted.show("Loading file...");
 
       var url;
       if (/^\w+$/.test(filename)) {
@@ -22465,19 +22805,19 @@ var script$1 = {
       } else if (index$11(filename)) {
         url = filename;
       } else if (/^[\w-]+\.\w+/.test(filename)) {
-        url = '//' + filename;
+        url = "//" + filename;
       } else {
         // convert url to github raw url
         var repo = filename.match(
           /^([^\/]+\/[^\/]+)(\/blob\/([\w-]+))?(\S+)$/
         );
-        url = "//raw.githubusercontent.com/" + (repo[1]) + "/" + (repo[3] || 'master') + (repo[4]);
+        url = "//raw.githubusercontent.com/" + (repo[1]) + "/" + (repo[3] || "master") + (repo[4]);
       }
 
       if (/github\.com\//.test(url)) {
         url = url
-          .replace(/github\.com\//, 'raw.githubusercontent.com/')
-          .replace(/\/blob\//, '/');
+          .replace(/github\.com\//, "raw.githubusercontent.com/")
+          .replace(/\/blob\//, "/");
       }
 
       try {
@@ -22485,11 +22825,11 @@ var script$1 = {
 
         this.$toasted.clear();
 
-        return  result.text();
+        return result.text();
       } catch (e) {
         this.$toasted.clear();
-        this.$toasted.show('File not found', {
-          type: 'error',
+        this.$toasted.show("File not found", {
+          type: "error",
           duration: 2000
         });
         return null;
@@ -22500,47 +22840,52 @@ var script$1 = {
   mounted: function mounted() {
     var this$1 = this;
 
-
     var modeParams = {
-      'html': {
-        defaultValue: defaultValueHtml,
-        editorMode:"vue",
-        autofocus:false
-        }, 
-      'css': {
-        defaultValue: defaultValueCss,
-        editorMode:"css",
-        autofocus:false
-        } , 
-      'js': {
-        defaultValue: defaultValueJs,
-        editorMode:"javascript",
-        autofocus:true
-        } 
-        };
- 
+      html: {
+        //defaultValue: defaultValueHtml,
+        editorMode: "vue",
+        autofocus: false,
+        lint: false
+      },
+      css: {
+        //defaultValue: defaultValueCss,
+        editorMode: "css",
+        autofocus: false,
+        lint: false
+      },
+      js: {
+        //defaultValue: defaultValueJs,
+        editorMode: "javascript",
+        autofocus: true,
+        lint: true
+      }
+    };
 
     var editor = codemirror.fromTextArea(this.$refs.textarea, {
       mode: modeParams[this.mode].editorMode,
-      theme: 'lucario',
+      theme: "lucario",
       value: "<template></template>",
       lineNumbers: true,
       tabSize: 2,
       autofocus: modeParams[this.mode].autofocus,
+      lint: modeParams[this.mode].lint,
+      gutters: ["CodeMirror-lint-markers"],
       line: true,
       styleActiveLine: true,
+      indentWithTabs: false,
       matchBrackets: true,
       extraKeys: {
-        Tab: 'emmetExpandAbbreviation',
-        Enter: 'emmetInsertLineBreak'
+          Tab: function (cm) { return cm.execCommand("indentMore"); },
+          "Shift-Tab": function (cm) { return cm.execCommand("indentLess"); },
+        Enter: "emmetInsertLineBreak"
       }
     });
     editor.setSize("100%", "calc(100% - 32px)");
 
     editor.on(
-      'change',
+      "change",
       debounce(200, function () {
-        this$1.$emit('change', editor.getValue());
+        this$1.$emit("change", editor.getValue());
       })
     );
 
@@ -22549,9 +22894,13 @@ var script$1 = {
       value = document.getElementById(this.elementName).value;
     }
     value = value || modeParams[this.mode].defaultValue;
+    if (value == null) {
+      value = "";
+    }
+
     editor.setValue(value);
 
-    this.$emit('change', editor.getValue());
+    this.$emit("change", editor.getValue());
   }
 };
 
@@ -22565,10 +22914,11 @@ var __vue_render__$1 = function() {
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
   return _c("div", { staticClass: "editor" }, [
+    _vm._v(" " + _vm._s(_vm.upperLabel) + "\n  "),
     _c("textarea", {
       ref: "textarea",
       staticClass: "editor",
-      attrs: { name: _vm.elementName }
+      attrs: { name: _vm.elementName, id: _vm.elementId }
     })
   ])
 };
@@ -22578,11 +22928,11 @@ __vue_render__$1._withStripped = true;
   /* style */
   var __vue_inject_styles__$1 = function (inject) {
     if (!inject) { return }
-    inject("data-v-198cfec1_0", { source: "\n.editor[data-v-198cfec1] .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\editor.vue","editor.vue"],"names":[],"mappings":";AAuJA;EACA,uBAAA;EACA,aAAA;EACA,oBAAA;CCtJC","file":"editor.vue","sourcesContent":[null,".editor >>> .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n"]}, media: undefined });
+    inject("data-v-3c07d744_0", { source: "\n.editor[data-v-3c07d744] .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\editor.vue","editor.vue"],"names":[],"mappings":";AA+KA;EACA,uBAAA;EACA,aAAA;EACA,oBAAA;CC9KC","file":"editor.vue","sourcesContent":[null,".editor >>> .CodeMirror {\n  border: 1px solid #000;\n  height: 100%;\n  line-height: 1.2rem;\n}\n"]}, media: undefined });
 
   };
   /* scoped */
-  var __vue_scope_id__$1 = "data-v-198cfec1";
+  var __vue_scope_id__$1 = "data-v-3c07d744";
   /* module identifier */
   var __vue_module_identifier__$1 = undefined;
   /* functional template */
@@ -28370,7 +28720,8 @@ var __vue_render__ = function() {
                       attrs: {
                         data: item,
                         mode: item.mode,
-                        "element-name": item["elementName"]
+                        "element-name": item["elementName"],
+                        label: item["mode"]
                       },
                       on: {
                         change: function($event) {
@@ -28426,7 +28777,7 @@ __vue_render__._withStripped = true;
   /* style */
   var __vue_inject_styles__ = function (inject) {
     if (!inject) { return }
-    inject("data-v-17335b9a_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n  padding-top: 20px;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AA6MA;EACA,cAAA;CC5MC;AD8MD;EACA,YAAA;CC5MC;AD8MD;EACA,aAAA;EACA,kBAAA;CC5MC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n  padding-top: 20px;\n}\n"]}, media: undefined });
+    inject("data-v-4a56685f_0", { source: "\n.main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n  padding-top: 20px;\n}\n", map: {"version":3,"sources":["D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep/D:\\Users\\eu\\Dropbox\\EasyPHP-5.3.6.0\\www\\vuep\\src\\components\\playground.vue","playground.vue"],"names":[],"mappings":";AA6MA;EACA,cAAA;CC5MC;AD8MD;EACA,YAAA;CC5MC;AD8MD;EACA,aAAA;EACA,kBAAA;CC5MC","file":"playground.vue","sourcesContent":[null,".main {\n  display: flex;\n}\n.vue-grid-layout {\n  width: 100%;\n}\n.vue-grid-layout .panel {\n  height: 100%;\n  padding-top: 20px;\n}\n"]}, media: undefined });
 
   };
   /* scoped */
@@ -28603,15 +28954,19 @@ if (typeof Vue !== 'undefined') {
   Vue.use(install); // eslint-disable-line
 }
 
-if (typeof require !== 'undefined') {
-  require('codemirror/addon/mode/overlay');
-  require('codemirror/addon/mode/simple');
-  require('codemirror/mode/css/css');
-  require('codemirror/mode/htmlmixed/htmlmixed');
-  require('codemirror/mode/javascript/javascript');
-  require('codemirror/mode/vue/vue');
-  require('codemirror/mode/xml/xml');
-  require('codemirror/mode/jsx/jsx');
+if (typeof require !== "undefined") {
+  require("codemirror/addon/mode/overlay");
+  require("codemirror/addon/mode/simple");
+  require("codemirror/mode/css/css");
+  require("codemirror/mode/htmlmixed/htmlmixed");
+
+  require("codemirror/mode/vue/vue");
+  require("codemirror/mode/xml/xml");
+  require("codemirror/mode/jsx/jsx");
+  require("codemirror/addon/lint/lint.js");
+  //require("codemirror/addon/lint/lint.css");
+  require(" codemirror/addon/lint/javascript-lint");
+  require("codemirror/mode/javascript/javascript");
 }
 
 module.exports = Vuep$2;
