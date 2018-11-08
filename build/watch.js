@@ -1,4 +1,4 @@
-import nodeResolve from "rollup-plugin-node-resolve";
+import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 import buble from "rollup-plugin-buble";
 import vue from "rollup-plugin-vue";
@@ -6,6 +6,7 @@ import replace from "rollup-plugin-replace";
 import css from "@henrikjoreteg/rollup-plugin-css";
 import json from "rollup-plugin-json";
 import builtins from "rollup-plugin-node-builtins";
+import globals from "rollup-plugin-node-globals";
 
 export default {
   input: "src/index.js",
@@ -18,16 +19,10 @@ export default {
       output: "./dist/vuep.css",
       minify: true
     }),
-    vue(),
-    json(),
+
     builtins(),
-    buble({
-      objectAssign: "assign",
-      transforms: {
-        dangerousForOf: true,
-        generator: false
-      }
-    }),
+    vue(),
+    resolve({ browser: true }), // tells Rollup how to find date-fns in node_modules
     commonjs({
       namedExports: {
         // left-hand side can be an absolute path, a path
@@ -36,14 +31,23 @@ export default {
         "node_modules/vue-template-compiler/browser.js": ["parseComponent"]
       }
     }),
-    nodeResolve()
+    globals(),
+
+    json(),
+    buble({
+      objectAssign: "assign",
+      transforms: {
+        dangerousForOf: true,
+        generator: false
+      }
+    })
   ],
 
   external: ["vue"],
   output: {
     file: "dist/vuep.js",
     name: "Vuep",
-    format: "umd",
+    format: "iife",
     globals: {
       vue: "Vue"
       //'vue-grid-layout': 'VueGridLayout'
