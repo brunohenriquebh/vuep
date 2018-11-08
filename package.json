@@ -67,7 +67,7 @@
     "stylus-loader": "^3.0.2",
     "throttle-debounce": "^2.0.1",
     "vue": "^2.1.7",
-    "vue-template-compiler": "*",
+    "vue-template-compiler": "^2.5.17",
     "vue-toasted": "^1.1.25"
   },
   "peerDependencies": {
