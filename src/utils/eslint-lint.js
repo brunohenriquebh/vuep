@@ -5,6 +5,7 @@
 
 //const Linter = require("eslint");
 //import { rules } from "eslint-plugin-vue";
+//var rules = require("eslint-plugin-vue");
 //console.log(rules);
 //const linter = new Linter();
 

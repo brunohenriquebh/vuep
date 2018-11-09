@@ -18,7 +18,14 @@ import "../utils/eslint-lint.js";
 //import 'eslint';
 import "codemirror/addon/lint/lint.js";
 import "codemirror/mode/javascript/javascript";
+//
+import "codemirror/addon/search/search.js";
+import "codemirror/addon/search/searchcursor.js";
+import "codemirror/addon/search/jump-to-line.js";
+import "codemirror/addon/dialog/dialog.js";
 
+//
+ 
 //
 import { debounce } from "throttle-debounce";
 import isAbsouteUrl from "is-absolute-url";
@@ -142,6 +149,7 @@ export default {
       indentWithTabs: false,
       matchBrackets: true,
       extraKeys: {
+          "Alt-F": "findPersistent",
           Tab: (cm) => cm.execCommand("indentMore"),
           "Shift-Tab": (cm) => cm.execCommand("indentLess"),
         Enter: "emmetInsertLineBreak"

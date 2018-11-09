@@ -22,7 +22,12 @@ export default {
 
     builtins(),
     vue(),
-    resolve({ browser: true }), // tells Rollup how to find date-fns in node_modules
+    resolve({
+      jsnext: true,
+      main: true,
+      module: true,
+      preferBuiltins: true
+    }), // tells Rollup how to find date-fns in node_modules
     commonjs({
       namedExports: {
         // left-hand side can be an absolute path, a path
